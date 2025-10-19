@@ -1,6 +1,18 @@
 import { Event } from './events2024';
 
 export const pastEvents: Event[] = [
+    {
+    id: 5,
+    title: "Meraki (Club Performance)",
+    date: "October 10, 2025",
+    time: "8:00 PM",
+    location: "Basket Ball Court",
+    description: "Perfomance for the Inaugration of Our Intra College Fest",
+    image: "/events/events2025-26/Meraki_2025/Meraki_1.jpg",
+    category: "Performances",
+    galleryRoute: "/2025events/meraki-2025",
+    order: 5
+  },
   {
     id: 4,
     title: "1st Open Mic Night",
@@ -18,7 +30,7 @@ export const pastEvents: Event[] = [
     id: 3,
     title: "Blastroduction (Club Performance)",
     date: "September 8, 2025",
-    time: "4:00 PM",
+    time: "7:00 PM",
     location: "H05",
     description: "A spectacular showcase introducing the Music Club's talent to the institute, featuring our finest performers and diverse musical styles.",
     image: "/events/events2025-26/Blastroduction_2025/Blastroduction_1.JPG",
