@@ -36,6 +36,7 @@ export default function Gallery2025Page() {
       try {
         setLoading(true);
         const items = await getGalleryItems(2025);
+        // Items are already sorted by ID descending (newest first)
         setGalleryItems(items);
         setError(null);
       } catch (err) {

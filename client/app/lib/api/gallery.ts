@@ -5,7 +5,7 @@ export async function getGalleryItems(year: number, category?: string) {
     .from('gallery_items')
     .select('*')
     .eq('year', year)
-    .order('order', { ascending: true });
+    .order('id', { ascending: false }); // Newest items first (highest ID = newest)
 
   if (category && category !== 'all') {
     query = query.eq('category', category);

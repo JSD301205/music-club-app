@@ -54,7 +54,7 @@ export const galleryItems: GalleryItem[] = [
     videoUrl: "https://www.youtube.com/embed/lrr-fozvjyM",
     event: "Meraki (Club Performance)",
     id: 11,
-    order: 11
+    order: 1
   },
 
   {
@@ -65,7 +65,7 @@ export const galleryItems: GalleryItem[] = [
     videoUrl: "https://www.youtube.com/embed/hmY0YhsioKc",
     event: "Meraki (Club Performance)",
     id: 12,
-    order: 12
+    order: 2
   },
 
   {
@@ -76,7 +76,7 @@ export const galleryItems: GalleryItem[] = [
     videoUrl: "https://www.youtube.com/embed/8YeY7iXA6Oc",
     event: "Blastroduction (Club Performance)",
     id: 10,
-    order: 10
+    order: 3
   },
 
   {
@@ -87,7 +87,7 @@ export const galleryItems: GalleryItem[] = [
     videoUrl: "https://www.youtube.com/embed/l1fRImnl7Jo",
     event: "Blastroduction (Club Performance)",
     id: 9,
-    order: 9
+    order: 4
   },
 
   {
@@ -98,7 +98,7 @@ export const galleryItems: GalleryItem[] = [
     videoUrl: "https://www.youtube.com/embed/VeJ8v_iVLAg",
     event: "",
     id: 8,
-    order: 8
+    order: 5
   },
 
   {
@@ -109,7 +109,7 @@ export const galleryItems: GalleryItem[] = [
     videoUrl: "https://www.youtube.com/embed/JXOr_CA6Wm4",
     event: "Ganesh Chaturthi (Club Performance)",
     id: 7,
-    order: 7
+    order: 6
   },
 
   { 
@@ -120,7 +120,7 @@ export const galleryItems: GalleryItem[] = [
     videoUrl: "https://www.youtube.com/embed/262dRYmsPc0",
     event: "Ganesh Chaturthi (Club Performance)",
     id: 6,
-    order: 6
+    order: 7
   },
 
   {
@@ -131,7 +131,7 @@ export const galleryItems: GalleryItem[] = [
     videoUrl: "https://www.youtube.com/embed/zhYIK5OMXaI",
     event: "Ganesh Chaturthi (Club Performance)",
     id: 5,
-    order: 5
+    order: 8
   },
 
   {
@@ -142,7 +142,7 @@ export const galleryItems: GalleryItem[] = [
     videoUrl: "https://www.youtube.com/embed/UcxsdDxzbBI",
     event: "Ganesh Chaturthi (Club Performance)",
     id: 4,
-    order: 4
+    order: 9
   },
 
   {
@@ -153,7 +153,7 @@ export const galleryItems: GalleryItem[] = [
     videoUrl: "https://www.youtube.com/embed/6ToECouP3Oo",
     event: "Independence Day (Club Performance)",
     id: 3,
-    order: 3
+    order: 10
   },
 
   {
@@ -164,7 +164,7 @@ export const galleryItems: GalleryItem[] = [
     videoUrl: "https://www.youtube.com/embed/qh1ehMfgvKA",
     event: "Independence Day (Club Performance)",
     id: 2,
-    order: 2
+    order: 11
   },
 
   {
@@ -175,7 +175,7 @@ export const galleryItems: GalleryItem[] = [
     videoUrl: "https://www.youtube.com/embed/fL-jYC7M5IM",
     event: "Independence Day (Club Performance)",
     id: 1,
-    order: 1
+    order: 12
   },
 ].map((item, index) => ({
   ...item,
