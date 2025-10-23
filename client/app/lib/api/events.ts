@@ -5,7 +5,7 @@ export async function getEvents(year: number, status?: 'past' | 'upcoming') {
     .from('events')
     .select('*')
     .eq('year', year)
-    .order('order', { ascending: true });
+    .order('id', { ascending: false }); // Newest events first (highest ID = newest)
 
   if (status) {
     query = query.eq('status', status);
