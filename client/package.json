@@ -6,10 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate": "tsx scripts/migrate-to-supabase.ts"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
+    "@supabase/supabase-js": "^2.76.1",
     "@types/node": "20.6.2",
     "@types/nodemailer": "^6.4.17",
     "@types/react": "18.2.22",
@@ -33,6 +35,8 @@
     "typescript": "5.2.2"
   },
   "devDependencies": {
-    "@types/react-slick": "^0.23.13"
+    "@types/react-slick": "^0.23.13",
+    "dotenv": "^17.2.3",
+    "tsx": "^4.20.6"
   }
 }

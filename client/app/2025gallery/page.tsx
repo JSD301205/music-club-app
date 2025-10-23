@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import GallerySection from '../components/sections/GallerySection';
-import { galleryItems } from '../data/gallery2025';
+import { getGalleryItems } from '../lib/api/gallery';
+import { GalleryItem } from '../lib/supabase';
 
 // Convert filter to URL-friendly format
 const filterToHash = (filter: string): string => {
@@ -16,15 +17,37 @@ const hashToFilter = (hash: string): string => {
 };
 
 export default function Gallery2025Page() {
-  // Initialize state from URL hash
   const [activeFilter, setActiveFilter] = useState(() => {
-    // Check if we're in the browser
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.replace('#', '');
       return hash ? hashToFilter(hash) : 'all';
     }
     return 'all';
   });
+
+  // State for gallery items from database
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch gallery items from Supabase
+  useEffect(() => {
+    async function fetchGalleryItems() {
+      try {
+        setLoading(true);
+        const items = await getGalleryItems(2025);
+        setGalleryItems(items);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching gallery items:', err);
+        setError('Failed to load gallery. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchGalleryItems();
+  }, []);
 
   // Handle hash changes
   useEffect(() => {
@@ -36,7 +59,6 @@ export default function Gallery2025Page() {
       }
     };
 
-    // Listen for hash changes
     window.addEventListener('hashchange', handleHashChange);
     
     return () => {
@@ -48,21 +70,32 @@ export default function Gallery2025Page() {
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
     const hash = filterToHash(filter);
-    window.location.hash = hash;
+    window.history.pushState(null, '', `#${hash}`);
   };
 
-  return (
-    <main className="min-h-screen bg-gray-900">
-      <div className="pt-20">
-        <GallerySection 
-          activeFilter={activeFilter} 
-          setActiveFilter={handleFilterChange}
-          showViewFullButton={false}
-          showAllImages={true}
-          showFilters={true}
-          items={galleryItems}
-        />
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading gallery...</div>
       </div>
-    </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="text-red-400 text-xl">{error}</div>
+      </div>
+    );
+  }
+
+  return (
+    <GallerySection 
+      activeFilter={activeFilter}
+      setActiveFilter={handleFilterChange}
+      showAllImages={true}
+      showFilters={true}
+      items={galleryItems}
+    />
   );
-} 
+}

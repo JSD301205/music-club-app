@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import AnimatedSection from '../components/layout/AnimatedSection';
 import EventCard from '../components/ui/EventCard';
-import { pastEvents, upcomingEvents } from '../data/events2025';
-import { Event } from '../data/events2024';
+import { getEvents } from '../lib/api/events';
+import { Event } from '../lib/supabase';
 
 type EventCategory = 'All' | 'Performances' | 'Open Mics' | 'Competitions' | 'Workshops';
 
@@ -28,10 +28,8 @@ const hashToCategory = (hash: string): EventCategory => {
 };
 
 export default function Events2025Page() {
-  // Initialize state from URL hash
   const [activeTab, setActiveTab] = useState<'past' | 'upcoming'>('upcoming');
   const [selectedCategory, setSelectedCategory] = useState<EventCategory>(() => {
-    // Check if we're in the browser
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.replace('#', '');
       return hash ? hashToCategory(hash) : 'All';
@@ -39,7 +37,39 @@ export default function Events2025Page() {
     return 'All';
   });
 
+  // State for events from database
+  const [pastEvents, setPastEvents] = useState<Event[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const categories: EventCategory[] = ['All', 'Performances', 'Open Mics', 'Competitions', 'Workshops'];
+
+  // Fetch events from Supabase
+  useEffect(() => {
+    async function fetchEvents() {
+      try {
+        setLoading(true);
+        console.log('Fetching events for year 2025...');
+        const [past, upcoming] = await Promise.all([
+          getEvents(2025, 'past'),
+          getEvents(2025, 'upcoming')
+        ]);
+        console.log('Past events fetched:', past);
+        console.log('Upcoming events fetched:', upcoming);
+        setPastEvents(past);
+        setUpcomingEvents(upcoming);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching events:', err);
+        setError('Failed to load events. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchEvents();
+  }, []);
 
   // Handle hash changes
   useEffect(() => {
@@ -51,7 +81,6 @@ export default function Events2025Page() {
       }
     };
 
-    // Listen for hash changes
     window.addEventListener('hashchange', handleHashChange);
     
     return () => {
@@ -63,12 +92,46 @@ export default function Events2025Page() {
   const handleCategoryChange = (category: EventCategory) => {
     setSelectedCategory(category);
     const hash = categoryToHash(category);
-    window.location.hash = hash;
+    window.history.pushState(null, '', `#${hash}`);
   };
 
-  const filteredEvents = activeTab === 'past' 
-    ? pastEvents.filter((event: Event) => selectedCategory === 'All' || event.category === selectedCategory)
-    : upcomingEvents.filter((event: Event) => selectedCategory === 'All' || event.category === selectedCategory);
+  // Filter events based on selected category
+  const filterEventsByCategory = (events: Event[]) => {
+    if (selectedCategory === 'All') return events;
+    return events.filter(event => event.category === selectedCategory);
+  };
+
+  const filteredPastEvents = filterEventsByCategory(pastEvents);
+  const filteredUpcomingEvents = filterEventsByCategory(upcomingEvents);
+
+  console.log('Current state:', {
+    loading,
+    error,
+    pastEventsCount: pastEvents.length,
+    upcomingEventsCount: upcomingEvents.length,
+    filteredPastCount: filteredPastEvents.length,
+    filteredUpcomingCount: filteredUpcomingEvents.length,
+    activeTab,
+    selectedCategory
+  });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading events...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="text-red-400 text-xl">{error}</div>
+      </div>
+    );
+  }
+
+  const filteredEvents = activeTab === 'past' ? filteredPastEvents : filteredUpcomingEvents;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
@@ -141,7 +204,7 @@ export default function Events2025Page() {
           </div>
 
           {/* Events Grid */}
-          {activeTab === 'past' && pastEvents.length === 0 ? (
+          {activeTab === 'past' && filteredPastEvents.length === 0 ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -150,6 +213,16 @@ export default function Events2025Page() {
             >
               <p className="text-2xl font-medium mb-3">No past events for 2025 yet.</p>
               <p className="text-gray-400">Check out our upcoming events!</p>
+            </motion.div>
+          ) : activeTab === 'upcoming' && filteredUpcomingEvents.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-center text-gray-300 py-16 bg-gray-800/30 backdrop-blur-sm rounded-xl border border-gray-700/50"
+            >
+              <p className="text-2xl font-medium mb-3">No upcoming events at the moment.</p>
+              <p className="text-gray-400">Check back later for new events!</p>
             </motion.div>
           ) : (
             <motion.div
@@ -168,4 +241,4 @@ export default function Events2025Page() {
       </AnimatedSection>
     </main>
   );
-} 
+}
