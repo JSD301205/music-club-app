@@ -54,8 +54,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }, 3000)
 
+    // Check if Supabase is configured
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.error('Supabase environment variables not configured')
+      setLoading(false)
+      clearTimeout(timeout)
+      return
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('AuthContext - Session loaded:', session ? 'exists' : 'none')
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {

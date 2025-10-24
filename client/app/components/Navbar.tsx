@@ -13,7 +13,18 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  const { user, loading } = useAuth();
+  
+  // Use optional chaining with fallback
+  const authContext = useAuth();
+  const user = authContext?.user ?? null;
+  const loading = authContext?.loading ?? false;
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Navbar - User:', user ? 'logged in' : 'not logged in');
+    console.log('Navbar - Loading:', loading);
+    console.log('Navbar - Auth Context:', authContext);
+  }, [user, loading, authContext]);
 
   useEffect(() => {
     const handleScroll = () => {
