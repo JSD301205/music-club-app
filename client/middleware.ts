@@ -59,6 +59,31 @@ export async function middleware(request: NextRequest) {
 
   const url = request.nextUrl.clone()
   
+  // Admin route protection - only allow admin role
+  if (url.pathname.startsWith('/admin')) {
+    if (!session?.user) {
+      // Not logged in, redirect to login
+      url.pathname = '/auth/login'
+      return NextResponse.redirect(url)
+    }
+    
+    // Check if user has admin role
+    // @ts-ignore - Supabase types
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single()
+    
+    const userProfile = profile as any
+    
+    if (!userProfile || userProfile.role !== 'admin') {
+      // Not admin, redirect to home
+      url.pathname = '/'
+      return NextResponse.redirect(url)
+    }
+  }
+  
   // Protected routes that require a complete profile
   const protectedRoutes = ['/community', '/settings']
   const isProtectedRoute = protectedRoutes.some(route => url.pathname.startsWith(route))
@@ -66,14 +91,17 @@ export async function middleware(request: NextRequest) {
   // If user is logged in and trying to access protected routes
   if (session?.user && isProtectedRoute) {
     // Check if profile is complete
+    // @ts-ignore - Supabase types
     const { data: profile } = await supabase
       .from('profiles')
       .select('is_profile_complete')
       .eq('id', session.user.id)
       .single()
     
+    const userProfile = profile as any
+    
     // If no profile or profile not complete, redirect to setup
-    if (!profile || !profile.is_profile_complete) {
+    if (!userProfile || !userProfile.is_profile_complete) {
       url.pathname = '/auth/setup-profile'
       return NextResponse.redirect(url)
     }
@@ -81,13 +109,16 @@ export async function middleware(request: NextRequest) {
 
   // If user is logged in with complete profile and tries to access auth pages, redirect to community
   if (session?.user && (url.pathname.startsWith('/auth/login') || url.pathname.startsWith('/auth/signup'))) {
+    // @ts-ignore - Supabase types
     const { data: profile } = await supabase
       .from('profiles')
       .select('is_profile_complete')
       .eq('id', session.user.id)
       .single()
     
-    if (profile?.is_profile_complete) {
+    const userProfile = profile as any
+    
+    if (userProfile?.is_profile_complete) {
       url.pathname = '/community'
       return NextResponse.redirect(url)
     }
