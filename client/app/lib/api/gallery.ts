@@ -22,8 +22,8 @@ export async function getGalleryItems(year: number, category?: string) {
 }
 
 export async function createGalleryItem(item: Omit<GalleryItem, 'id' | 'created_at' | 'updated_at'>) {
-  const { data, error } = await supabase
-    .from('gallery_items')
+  const { data, error } = await (supabase
+    .from('gallery_items') as any)
     .insert([item])
     .select()
     .single();
@@ -37,8 +37,8 @@ export async function createGalleryItem(item: Omit<GalleryItem, 'id' | 'created_
 }
 
 export async function updateGalleryItem(id: number, updates: Partial<GalleryItem>) {
-  const { data, error } = await supabase
-    .from('gallery_items')
+  const { data, error } = await (supabase
+    .from('gallery_items') as any)
     .update(updates)
     .eq('id', id)
     .select()

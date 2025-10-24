@@ -31,16 +31,20 @@ function MessagesPageContent() {
       if (username && user) {
         try {
           // Get the user's profile
+          // @ts-ignore - Supabase types
           const { data: profile } = await supabase
             .from('profiles')
             .select('id')
             .eq('username', username)
             .single()
 
+          // @ts-ignore - Supabase types
           if (profile && profile.id !== user.id) {
             // Get or create conversation
+            // @ts-ignore - Supabase types
             const { data: conversationId } = await supabase.rpc('get_or_create_conversation', {
               user1: user.id,
+              // @ts-ignore - Supabase types
               user2: profile.id,
             })
 

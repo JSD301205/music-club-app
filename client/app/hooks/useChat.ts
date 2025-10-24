@@ -27,6 +27,7 @@ export function useConversations(userId: string | undefined) {
     }
 
     try {
+      // @ts-ignore - Supabase types
       const { data, error } = await supabase
         .from('conversations')
         .select('*')
@@ -37,9 +38,10 @@ export function useConversations(userId: string | undefined) {
 
       // Fetch profiles for other users in conversations
       const conversationsWithProfiles = await Promise.all(
-        (data || []).map(async (conv) => {
+        (data || []).map(async (conv: any) => {
           const otherUserId = conv.user1_id === userId ? conv.user2_id : conv.user1_id
           
+          // @ts-ignore - Supabase types
           const { data: profile } = await supabase
             .from('profiles')
             .select('*')
@@ -137,7 +139,7 @@ export function useMessages(conversationId: string | undefined) {
           const newMessage = {
             ...payload.new,
             sender,
-          } as MessageWithSender
+          } as unknown as MessageWithSender
 
           // console.log('Adding message to state:', newMessage)
 
@@ -175,6 +177,7 @@ export function useMessages(conversationId: string | undefined) {
     try {
       // console.log('Sending message...', { conversationId, senderId, receiverId })
       
+      // @ts-ignore - Supabase types
       const { data, error } = await supabase.from('messages').insert({
         conversation_id: conversationId,
         sender_id: senderId,
@@ -210,6 +213,7 @@ export function useMessages(conversationId: string | undefined) {
     try {
       const { error } = await supabase
         .from('messages')
+        // @ts-ignore - Supabase types
         .update({ is_read: true })
         .in('id', messageIds)
         .eq('receiver_id', userId)

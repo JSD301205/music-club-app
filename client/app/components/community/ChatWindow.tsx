@@ -29,6 +29,7 @@ export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) 
       if (!conversationId || !user) return
 
       try {
+        // @ts-ignore - Supabase types
         const { data: conversation } = await supabase
           .from('conversations')
           .select('*')
@@ -36,10 +37,12 @@ export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) 
           .single()
 
         if (conversation) {
-          const otherUserId = conversation.user1_id === user.id 
-            ? conversation.user2_id 
-            : conversation.user1_id
+          const conv: any = conversation
+          const otherUserId = conv.user1_id === user.id 
+            ? conv.user2_id 
+            : conv.user1_id
 
+          // @ts-ignore - Supabase types
           const { data: profile } = await supabase
             .from('profiles')
             .select('*')

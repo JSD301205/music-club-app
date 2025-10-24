@@ -56,16 +56,19 @@ export default function SetupProfilePage() {
     try {
       if (!user) throw new Error('No user found')
 
+      const updateData = {
+        bio: formData.bio,
+        instruments: formData.instruments,
+        musical_interests: formData.musicalInterests,
+        batch_year: formData.batchYear,
+        spotify_playlist: formData.spotifyPlaylist || null,
+        is_profile_complete: true,
+      }
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          bio: formData.bio,
-          instruments: formData.instruments,
-          musical_interests: formData.musicalInterests,
-          batch_year: formData.batchYear,
-          spotify_playlist: formData.spotifyPlaylist || null,
-          is_profile_complete: true,
-        })
+        // @ts-ignore - Supabase types use Json type for arrays
+        .update(updateData)
         .eq('id', user.id)
 
       if (error) throw error

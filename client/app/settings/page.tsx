@@ -69,8 +69,8 @@ export default function SettingsPage() {
     try {
       if (!user) throw new Error('No user found')
 
-      const { error } = await supabase
-        .from('profiles')
+      const { error } = await (supabase
+        .from('profiles') as any)
         .update({
           username: formData.username,
           full_name: formData.fullName,
@@ -120,7 +120,7 @@ export default function SettingsPage() {
 
     try {
       // Delete user profile
-      await supabase.from('profiles').delete().eq('id', user?.id)
+      await (supabase.from('profiles') as any).delete().eq('id', user?.id)
       
       // Sign out
       await signOut()

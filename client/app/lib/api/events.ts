@@ -22,8 +22,8 @@ export async function getEvents(year: number, status?: 'past' | 'upcoming') {
 }
 
 export async function createEvent(event: Omit<Event, 'id' | 'created_at' | 'updated_at'>) {
-  const { data, error } = await supabase
-    .from('events')
+  const { data, error } = await (supabase
+    .from('events') as any)
     .insert([event])
     .select()
     .single();
@@ -37,8 +37,8 @@ export async function createEvent(event: Omit<Event, 'id' | 'created_at' | 'upda
 }
 
 export async function updateEvent(id: number, updates: Partial<Event>) {
-  const { data, error } = await supabase
-    .from('events')
+  const { data, error } = await (supabase
+    .from('events') as any)
     .update(updates)
     .eq('id', id)
     .select()

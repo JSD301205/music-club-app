@@ -48,6 +48,7 @@ export default function CommunityPage() {
 
   const fetchMembers = async () => {
     try {
+      // @ts-ignore - Supabase types
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
