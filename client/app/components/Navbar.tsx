@@ -6,11 +6,14 @@ import Image from 'next/image';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '../contexts/AuthContext';
+import ProfileDropdown from './auth/ProfileDropdown';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,6 +34,7 @@ const Navbar = () => {
     { name: 'Events', href: '/events' },
     { name: 'Team', href: '/team' },
     { name: 'Gallery', href: '/gallery' },
+    { name: 'Community', href: '/community' },
     { name: 'Contact', href: pathname === '/' ? '#contact' : '/#contact' },
   ];
 
@@ -67,6 +71,30 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
+            
+            {/* Auth Section */}
+            {!loading && (
+              <>
+                {user ? (
+                  <ProfileDropdown />
+                ) : (
+                  <div className="flex items-center space-x-4">
+                    <Link
+                      href="/auth/login"
+                      className="text-gray-300 hover:text-white transition-colors duration-300"
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      href="/auth/signup"
+                      className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all"
+                    >
+                      Sign Up
+                    </Link>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -97,6 +125,54 @@ const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
+              
+              {/* Mobile Auth Section */}
+              {!loading && (
+                <>
+                  {user ? (
+                    <div className="mt-4 pt-4 border-t border-gray-700">
+                      <Link
+                        href={`/community/${user.email?.split('@')[0]}`}
+                        className="block py-2 text-gray-300 hover:text-white transition-colors duration-300"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        My Profile
+                      </Link>
+                      <Link
+                        href="/community/messages"
+                        className="block py-2 text-gray-300 hover:text-white transition-colors duration-300"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Messages
+                      </Link>
+                      <Link
+                        href="/settings"
+                        className="block py-2 text-gray-300 hover:text-white transition-colors duration-300"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Settings
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="mt-4 pt-4 border-t border-gray-700 space-y-2">
+                      <Link
+                        href="/auth/login"
+                        className="block py-2 text-gray-300 hover:text-white transition-colors duration-300"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Login
+                      </Link>
+                      <Link
+                        href="/auth/signup"
+                        className="block py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium text-center transition-all"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Sign Up
+                      </Link>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </motion.div>
         )}

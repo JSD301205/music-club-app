@@ -4,6 +4,7 @@ import { Inter, Poppins } from 'next/font/google';
 
 import Footer from './components/Footer';
 import Navbar from './components/Navbar';
+import { AuthProvider } from './contexts/AuthContext';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const poppins = Poppins({ 
@@ -28,9 +29,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${poppins.variable} font-sans`}>
-        < Navbar />
-        {children}
-        < Footer />
+        <AuthProvider>
+          < Navbar />
+          {children}
+          < Footer />
+        </AuthProvider>
       </body>
     </html>
   );
