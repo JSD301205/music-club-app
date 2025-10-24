@@ -39,7 +39,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-gray-900/90 backdrop-blur-md' : 'bg-transparent'}`}>
+    <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-gray-900/95 backdrop-blur-md shadow-lg' : 'bg-gray-900/50'}`}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           <Link href="/" className="flex items-center space-x-2">
@@ -72,25 +72,27 @@ const Navbar = () => {
               </Link>
             ))}
             
-            {/* Auth Section */}
-            {user ? (
-              <ProfileDropdown />
-            ) : (
-              <div className="flex items-center space-x-4">
-                <Link
-                  href="/auth/login"
-                  className="text-gray-300 hover:text-white transition-colors duration-300"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/auth/signup"
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all"
-                >
-                  Sign Up
-                </Link>
-              </div>
-            )}
+            {/* Auth Section - Always Visible */}
+            <div className="flex items-center space-x-4">
+              {user ? (
+                <ProfileDropdown />
+              ) : (
+                <>
+                  <Link
+                    href="/auth/login"
+                    className="text-gray-300 hover:text-white transition-colors duration-300 whitespace-nowrap"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/auth/signup"
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all whitespace-nowrap"
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
