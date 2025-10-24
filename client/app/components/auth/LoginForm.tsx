@@ -30,11 +30,14 @@ export default function LoginForm() {
       if (data.user) {
         // Check if profile exists
         // @ts-ignore - Supabase types
-        const { data: profile } = await supabase
+        const { data: profileData } = await supabase
           .from('profiles')
           .select('is_profile_complete')
           .eq('id', data.user.id)
           .single()
+
+        // Cast to any to avoid type errors
+        const profile = profileData as any
 
         // If no profile or profile not complete, redirect to setup
         if (!profile || !profile.is_profile_complete) {
