@@ -28,7 +28,20 @@ export default function LoginForm() {
       if (error) throw error
 
       if (data.user) {
-        router.push('/')
+        // Check if profile exists
+        // @ts-ignore - Supabase types
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_profile_complete')
+          .eq('id', data.user.id)
+          .single()
+
+        // If no profile or profile not complete, redirect to setup
+        if (!profile || !profile.is_profile_complete) {
+          router.push('/auth/setup-profile')
+        } else {
+          router.push('/community')
+        }
         router.refresh()
       }
     } catch (error: any) {

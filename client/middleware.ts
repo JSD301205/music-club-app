@@ -55,7 +55,43 @@ export async function middleware(request: NextRequest) {
   )
 
   // Refresh session if expired
-  await supabase.auth.getSession()
+  const { data: { session } } = await supabase.auth.getSession()
+
+  const url = request.nextUrl.clone()
+  
+  // Protected routes that require a complete profile
+  const protectedRoutes = ['/community', '/settings']
+  const isProtectedRoute = protectedRoutes.some(route => url.pathname.startsWith(route))
+  
+  // If user is logged in and trying to access protected routes
+  if (session?.user && isProtectedRoute) {
+    // Check if profile is complete
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_profile_complete')
+      .eq('id', session.user.id)
+      .single()
+    
+    // If no profile or profile not complete, redirect to setup
+    if (!profile || !profile.is_profile_complete) {
+      url.pathname = '/auth/setup-profile'
+      return NextResponse.redirect(url)
+    }
+  }
+
+  // If user is logged in with complete profile and tries to access auth pages, redirect to community
+  if (session?.user && (url.pathname.startsWith('/auth/login') || url.pathname.startsWith('/auth/signup'))) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_profile_complete')
+      .eq('id', session.user.id)
+      .single()
+    
+    if (profile?.is_profile_complete) {
+      url.pathname = '/community'
+      return NextResponse.redirect(url)
+    }
+  }
 
   return response
 }

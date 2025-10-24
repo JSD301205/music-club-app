@@ -32,7 +32,53 @@ export default function ProfileDropdown() {
     router.refresh()
   }
 
-  if (!user || !profile) return null
+  // If no user, don't show anything
+  if (!user) return null
+
+  // If user exists but no profile, show a basic dropdown with sign out
+  if (!profile) {
+    return (
+      <div className="relative" ref={dropdownRef}>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center space-x-2 focus:outline-none"
+        >
+          <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center border-2 border-purple-500">
+            <span className="text-white font-semibold">
+              {user.email?.charAt(0).toUpperCase() || 'U'}
+            </span>
+          </div>
+          <span className="text-white font-medium hidden md:block">{user.email?.split('@')[0]}</span>
+        </button>
+
+        {isOpen && (
+          <div className="absolute right-0 mt-2 w-56 bg-gray-900/95 backdrop-blur-lg rounded-lg shadow-2xl border border-gray-700 py-2 z-50">
+            <div className="px-4 py-3 border-b border-gray-700">
+              <p className="text-sm font-semibold text-white">{user.email}</p>
+              <p className="text-xs text-yellow-400">Profile not set up</p>
+            </div>
+
+            <Link
+              href="/auth/setup-profile"
+              className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              <FaUser className="mr-3" />
+              Complete Profile
+            </Link>
+
+            <button
+              onClick={handleSignOut}
+              className="flex items-center w-full px-4 py-2 text-sm text-red-400 hover:bg-gray-800 hover:text-red-300 transition-colors"
+            >
+              <FaSignOutAlt className="mr-3" />
+              Sign Out
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="relative" ref={dropdownRef}>

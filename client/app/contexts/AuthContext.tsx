@@ -25,13 +25,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
+      // @ts-ignore - Supabase types
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Error fetching profile:', error)
+        
+        // If profile doesn't exist, sign out the user
+        if (error.code === 'PGRST116') {
+          console.warn('Profile not found for user, signing out...')
+          await supabase.auth.signOut()
+          setUser(null)
+          setSession(null)
+          setProfile(null)
+          return
+        }
+        throw error
+      }
       setProfile(data)
     } catch (error) {
       console.error('Error fetching profile:', error)
