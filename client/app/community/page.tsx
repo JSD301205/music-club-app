@@ -8,17 +8,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { FaSearch, FaFilter, FaGuitar, FaMusic, FaEnvelope } from 'react-icons/fa'
-
-const INSTRUMENTS = [
-  'Guitar', 'Drums', 'Vocals', 'Piano', 'Bass', 'Keyboard',
-  'Violin', 'Flute', 'Saxophone', 'DJ/Production'
-]
-
-const GENRES = [
-  'Rock', 'Pop', 'Jazz', 'Classical', 'Hip Hop', 'Electronic',
-  'Blues', 'Country', 'R&B', 'Metal', 'Indie', 'Folk',
-  'Carnatic', 'Hindustani', 'Fusion'
-]
+import { INSTRUMENTS, GENRES } from '@/app/constants/music'
 
 export default function CommunityPage() {
   const { user, loading: authLoading } = useAuth()

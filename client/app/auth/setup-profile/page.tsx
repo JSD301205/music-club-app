@@ -5,27 +5,21 @@ import { useAuth } from '@/app/contexts/AuthContext'
 import { createClient } from '@/app/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 import { FaGuitar, FaDrum, FaMicrophone, FaMusic, FaHeadphones } from 'react-icons/fa'
+import { INSTRUMENTS, GENRES, BATCH_YEARS } from '@/app/constants/music'
 
-const INSTRUMENTS = [
-  { name: 'Guitar', icon: FaGuitar },
-  { name: 'Drums', icon: FaDrum },
-  { name: 'Vocals', icon: FaMicrophone },
-  { name: 'Piano', icon: FaMusic },
-  { name: 'Bass', icon: FaMusic },
-  { name: 'Keyboard', icon: FaMusic },
-  { name: 'Violin', icon: FaMusic },
-  { name: 'Flute', icon: FaMusic },
-  { name: 'Saxophone', icon: FaMusic },
-  { name: 'DJ/Production', icon: FaHeadphones },
-]
+// Icons mapping for instruments
+const INSTRUMENT_ICONS: Record<string, any> = {
+  'Guitar': FaGuitar,
+  'Drums': FaDrum,
+  'Vocals': FaMicrophone,
+  'Beatboxing': FaMicrophone,
+  'DJ/Production': FaHeadphones,
+  'default': FaMusic
+}
 
-const GENRES = [
-  'Rock', 'Pop', 'Jazz', 'Classical', 'Hip Hop', 'Electronic',
-  'Blues', 'Country', 'R&B', 'Metal', 'Indie', 'Folk',
-  'Carnatic', 'Hindustani', 'Fusion'
-]
-
-const BATCH_YEARS = [2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028]
+const getInstrumentIcon = (instrumentName: string) => {
+  return INSTRUMENT_ICONS[instrumentName] || INSTRUMENT_ICONS['default']
+}
 
 export default function SetupProfilePage() {
   const { user, profile, refreshProfile } = useAuth()
@@ -147,13 +141,13 @@ export default function SetupProfilePage() {
               </label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {INSTRUMENTS.map((instrument) => {
-                  const Icon = instrument.icon
-                  const isSelected = formData.instruments.includes(instrument.name)
+                  const Icon = getInstrumentIcon(instrument)
+                  const isSelected = formData.instruments.includes(instrument)
                   return (
                     <button
-                      key={instrument.name}
+                      key={instrument}
                       type="button"
-                      onClick={() => toggleInstrument(instrument.name)}
+                      onClick={() => toggleInstrument(instrument)}
                       className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-lg border-2 transition-all ${
                         isSelected
                           ? 'bg-purple-600 border-purple-500 text-white'
@@ -161,7 +155,7 @@ export default function SetupProfilePage() {
                       }`}
                     >
                       <Icon />
-                      <span>{instrument.name}</span>
+                      <span className="text-sm">{instrument}</span>
                     </button>
                   )
                 })}

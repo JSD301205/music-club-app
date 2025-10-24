@@ -6,19 +6,7 @@ import { createClient } from '@/app/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { FaSave, FaUser, FaLock, FaTrash } from 'react-icons/fa'
-
-const INSTRUMENTS = [
-  'Guitar', 'Drums', 'Vocals', 'Piano', 'Bass', 'Keyboard',
-  'Violin', 'Flute', 'Saxophone', 'DJ/Production'
-]
-
-const GENRES = [
-  'Rock', 'Pop', 'Jazz', 'Classical', 'Hip Hop', 'Electronic',
-  'Blues', 'Country', 'R&B', 'Metal', 'Indie', 'Folk',
-  'Carnatic', 'Hindustani', 'Fusion'
-]
-
-const BATCH_YEARS = [2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028]
+import { INSTRUMENTS, GENRES, BATCH_YEARS } from '@/app/constants/music'
 
 export default function SettingsPage() {
   const { user, profile, refreshProfile, signOut, loading: authLoading } = useAuth()

@@ -14,16 +14,7 @@ import {
   type JamPostFilters,
 } from '@/app/lib/api/jam-posts';
 import type { JamPostWithAuthor } from '@/app/lib/supabase';
-
-const INSTRUMENTS = [
-  'Guitar', 'Bass', 'Drums', 'Piano', 'Keyboard', 'Violin', 'Vocals',
-  'Saxophone', 'Trumpet', 'Flute', 'Tabla', 'Harmonium', 'Sitar', 'DJ',
-];
-
-const GENRES = [
-  'Rock', 'Pop', 'Jazz', 'Classical', 'Hip Hop', 'EDM', 'Blues', 'Country',
-  'R&B', 'Metal', 'Indie', 'Folk', 'Reggae', 'Soul', 'Fusion',
-];
+import { INSTRUMENTS, GENRES } from '@/app/constants/music';
 
 export default function JamBoardPage() {
   const router = useRouter();
