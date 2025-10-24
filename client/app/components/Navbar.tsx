@@ -76,22 +76,20 @@ const Navbar = () => {
             {user ? (
               <ProfileDropdown />
             ) : (
-              !loading && (
-                <div className="flex items-center space-x-4">
-                  <Link
-                    href="/auth/login"
-                    className="text-gray-300 hover:text-white transition-colors duration-300"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    href="/auth/signup"
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all"
-                  >
-                    Sign Up
-                  </Link>
-                </div>
-              )
+              <div className="flex items-center space-x-4">
+                <Link
+                  href="/auth/login"
+                  className="text-gray-300 hover:text-white transition-colors duration-300"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/auth/signup"
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all"
+                >
+                  Sign Up
+                </Link>
+              </div>
             )}
           </div>
 
@@ -150,24 +148,22 @@ const Navbar = () => {
                   </Link>
                 </div>
               ) : (
-                !loading && (
-                  <div className="mt-4 pt-4 border-t border-gray-700 space-y-2">
-                    <Link
-                      href="/auth/login"
-                      className="block py-2 text-gray-300 hover:text-white transition-colors duration-300"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      Login
-                    </Link>
-                    <Link
-                      href="/auth/signup"
-                      className="block py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium text-center transition-all"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      Sign Up
-                    </Link>
-                  </div>
-                )
+                <div className="mt-4 pt-4 border-t border-gray-700 space-y-2">
+                  <Link
+                    href="/auth/login"
+                    className="block py-2 text-gray-300 hover:text-white transition-colors duration-300"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/auth/signup"
+                    className="block py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium text-center transition-all"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Sign Up
+                  </Link>
+                </div>
               )}
             </div>
           </motion.div>
