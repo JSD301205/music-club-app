@@ -81,16 +81,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Get initial session and user
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       console.log('AuthContext - Session loaded:', session ? 'exists' : 'none')
-      const newUser = session?.user ?? null
-      console.log('AuthContext - Initial user:', newUser)
       setSession(session)
-      setUser(newUser)
-      if (session?.user) {
-        fetchProfile(session.user.id)
+      
+      if (session) {
+        // Use getUser() for secure authentication verification
+        const { data: { user }, error } = await supabase.auth.getUser()
+        
+        if (error) {
+          console.error('Error getting user:', error)
+          setUser(null)
+          setProfile(null)
+          setLoading(false)
+          clearTimeout(timeout)
+          return
+        }
+        
+        console.log('AuthContext - Initial user:', user)
+        setUser(user)
+        
+        if (user) {
+          await fetchProfile(user.id)
+        }
+      } else {
+        setUser(null)
+        setProfile(null)
       }
+      
       setLoading(false)
       clearTimeout(timeout)
     }).catch((error) => {
@@ -103,17 +122,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('AuthContext - Auth state changed:', _event, session)
-      const newUser = session?.user ?? null
-      console.log('AuthContext - Setting user to:', newUser)
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log('AuthContext - Auth state changed:', _event)
       setSession(session)
-      setUser(newUser)
-      if (session?.user) {
-        fetchProfile(session.user.id)
+      
+      if (session) {
+        // Use getUser() for secure authentication verification
+        const { data: { user }, error } = await supabase.auth.getUser()
+        
+        if (error) {
+          console.error('Error getting user:', error)
+          setUser(null)
+          setProfile(null)
+          setLoading(false)
+          return
+        }
+        
+        console.log('AuthContext - Setting user to:', user)
+        setUser(user)
+        
+        if (user) {
+          await fetchProfile(user.id)
+        }
       } else {
+        setUser(null)
         setProfile(null)
       }
+      
       setLoading(false)
     })
 

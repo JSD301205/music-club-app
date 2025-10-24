@@ -59,6 +59,7 @@ const Navbar = () => {
     { name: 'Team', href: '/team' },
     { name: 'Gallery', href: '/gallery' },
     { name: 'Community', href: '/community' },
+    { name: 'Jam Board', href: '/jam-board' },
     { name: 'Contact', href: pathname === '/' ? '#contact' : '/#contact' },
   ];
 
