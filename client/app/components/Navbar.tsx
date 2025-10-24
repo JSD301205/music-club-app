@@ -19,12 +19,15 @@ const Navbar = () => {
   const user = authContext?.user ?? null;
   const loading = authContext?.loading ?? false;
 
+  // Only consider user as "logged in" if user exists AND has an id
+  const isAuthenticated = user && user.id;
+
   // Debug logging
   useEffect(() => {
-    console.log('Navbar - User:', user ? 'logged in' : 'not logged in');
+    console.log('Navbar - User:', user);
+    console.log('Navbar - Is Authenticated:', isAuthenticated);
     console.log('Navbar - Loading:', loading);
-    console.log('Navbar - Auth Context:', authContext);
-  }, [user, loading, authContext]);
+  }, [user, loading, isAuthenticated]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -85,7 +88,7 @@ const Navbar = () => {
             
             {/* Auth Section - Always Visible */}
             <div className="flex items-center space-x-4">
-              {user ? (
+              {isAuthenticated ? (
                 <ProfileDropdown />
               ) : (
                 <>
@@ -136,7 +139,7 @@ const Navbar = () => {
               ))}
               
               {/* Mobile Auth Section */}
-              {user ? (
+              {isAuthenticated ? (
                 <div className="mt-4 pt-4 border-t border-gray-700">
                   <Link
                     href={`/community/${user.email?.split('@')[0]}`}
