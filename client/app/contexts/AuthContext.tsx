@@ -56,17 +56,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Check if Supabase is configured
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      console.error('Supabase environment variables not configured')
+      console.error('Supabase environment variables not configured - auth will not work')
+      setUser(null)
+      setSession(null)
+      setProfile(null)
       setLoading(false)
       clearTimeout(timeout)
-      return
+      return () => {
+        clearTimeout(timeout)
+      }
     }
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('AuthContext - Session loaded:', session ? 'exists' : 'none')
+      const newUser = session?.user ?? null
+      console.log('AuthContext - Initial user:', newUser)
       setSession(session)
-      setUser(session?.user ?? null)
+      setUser(newUser)
       if (session?.user) {
         fetchProfile(session.user.id)
       }
@@ -74,6 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       clearTimeout(timeout)
     }).catch((error) => {
       console.error('Error getting session:', error)
+      setUser(null)
       setLoading(false)
       clearTimeout(timeout)
     })
@@ -82,8 +90,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('AuthContext - Auth state changed:', _event, session)
+      const newUser = session?.user ?? null
+      console.log('AuthContext - Setting user to:', newUser)
       setSession(session)
-      setUser(session?.user ?? null)
+      setUser(newUser)
       if (session?.user) {
         fetchProfile(session.user.id)
       } else {

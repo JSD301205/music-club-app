@@ -19,15 +19,25 @@ const Navbar = () => {
   const user = authContext?.user ?? null;
   const loading = authContext?.loading ?? false;
 
+  // Track if we've confirmed no user (to prevent flickering)
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
+
+  useEffect(() => {
+    if (!loading) {
+      setHasCheckedAuth(true);
+    }
+  }, [loading]);
+
   // Only consider user as "logged in" if user exists AND has an id
-  const isAuthenticated = user && user.id;
+  const isAuthenticated = !!(user && user.id);
 
   // Debug logging
   useEffect(() => {
     console.log('Navbar - User:', user);
     console.log('Navbar - Is Authenticated:', isAuthenticated);
     console.log('Navbar - Loading:', loading);
-  }, [user, loading, isAuthenticated]);
+    console.log('Navbar - Has Checked Auth:', hasCheckedAuth);
+  }, [user, loading, isAuthenticated, hasCheckedAuth]);
 
   useEffect(() => {
     const handleScroll = () => {
