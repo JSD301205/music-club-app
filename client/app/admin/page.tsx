@@ -199,8 +199,8 @@ export default function AdminPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Gallery Item Form */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md max-h-[85vh] overflow-y-auto">
+          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white sticky top-0 bg-white dark:bg-gray-800 pb-2">
             Add New Gallery Item
           </h2>
 
@@ -295,7 +295,27 @@ export default function AdminPage() {
               value={newGalleryItem.event}
               onChange={(e) => setNewGalleryItem({ ...newGalleryItem, event: e.target.value })}
               className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              placeholder="e.g., Meraki (Club Performance)"
             />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Must match the exact event title
+            </p>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Order (Optional)
+            </label>
+            <input
+              type="number"
+              value={newGalleryItem.order}
+              onChange={(e) => setNewGalleryItem({ ...newGalleryItem, order: parseInt(e.target.value) || 0 })}
+              className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              placeholder="0"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Display order (0 = default, lower numbers appear first)
+            </p>
           </div>
 
           <button
@@ -318,8 +338,8 @@ export default function AdminPage() {
         </div>
 
         {/* Event Form */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md max-h-[85vh] overflow-y-auto">
+          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white sticky top-0 bg-white dark:bg-gray-800 pb-2">
             Add New Event
           </h2>
 
@@ -437,6 +457,86 @@ export default function AdminPage() {
               <option value="upcoming">Upcoming</option>
               <option value="past">Past</option>
             </select>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Gallery Route (Optional)
+            </label>
+            <input
+              type="text"
+              value={newEvent.gallery_route}
+              onChange={(e) => setNewEvent({ ...newEvent, gallery_route: e.target.value })}
+              className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              placeholder="/2025events/event-slug"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Example: /2025events/meraki-2025
+            </p>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Registration Link (Optional)
+            </label>
+            <input
+              type="text"
+              value={newEvent.registration_link}
+              onChange={(e) => setNewEvent({ ...newEvent, registration_link: e.target.value })}
+              className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              placeholder="https://forms.gle/..."
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              For Open Mics, Competitions, Workshops
+            </p>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              YouTube Video URL (Optional)
+            </label>
+            <input
+              type="text"
+              value={newEvent.youtube_url}
+              onChange={(e) => setNewEvent({ ...newEvent, youtube_url: e.target.value })}
+              className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              placeholder="https://www.youtube.com/embed/..."
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              For club performances with video
+            </p>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              View Bands Link (Optional)
+            </label>
+            <input
+              type="text"
+              value={newEvent.view_bands_link}
+              onChange={(e) => setNewEvent({ ...newEvent, view_bands_link: e.target.value })}
+              className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              placeholder="/meraki2024/bands"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              For competitions with band listings
+            </p>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Order (Optional)
+            </label>
+            <input
+              type="number"
+              value={newEvent.order}
+              onChange={(e) => setNewEvent({ ...newEvent, order: parseInt(e.target.value) || 0 })}
+              className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              placeholder="0"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Display order (0 = default)
+            </p>
           </div>
 
           <button
