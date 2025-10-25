@@ -215,22 +215,26 @@ export default function SignUpForm() {
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => handleOAuthSignIn('google')}
-              disabled={loading}
-              className="w-full inline-flex justify-center items-center py-3 px-4 border border-gray-600 rounded-lg shadow-sm bg-gray-800/50 text-sm font-medium text-white hover:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              disabled={true}
+              className="relative w-full inline-flex justify-center items-center py-3 px-4 border border-gray-700 rounded-lg shadow-sm bg-gray-800/30 text-sm font-medium text-gray-500 cursor-not-allowed transition-all opacity-60"
             >
               <FaGoogle className="h-5 w-5" />
               <span className="ml-2">Google</span>
+              <span className="absolute -top-2 -right-2 bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full font-semibold">
+                Soon
+              </span>
             </button>
 
             <button
               type="button"
-              onClick={() => handleOAuthSignIn('github')}
-              disabled={loading}
-              className="w-full inline-flex justify-center items-center py-3 px-4 border border-gray-600 rounded-lg shadow-sm bg-gray-800/50 text-sm font-medium text-white hover:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              disabled={true}
+              className="relative w-full inline-flex justify-center items-center py-3 px-4 border border-gray-700 rounded-lg shadow-sm bg-gray-800/30 text-sm font-medium text-gray-500 cursor-not-allowed transition-all opacity-60"
             >
               <FaGithub className="h-5 w-5" />
               <span className="ml-2">GitHub</span>
+              <span className="absolute -top-2 -right-2 bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full font-semibold">
+                Soon
+              </span>
             </button>
           </div>
         </form>
