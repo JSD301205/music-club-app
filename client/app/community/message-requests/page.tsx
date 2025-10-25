@@ -91,7 +91,7 @@ export default function MessageRequestsPage() {
     try {
       const { error } = await supabase
         .from('message_requests')
-        .update({ status: 'approved' })
+        .update({ status: 'approved' } as any)
         .eq('id', requestId)
 
       if (error) throw error
@@ -107,7 +107,7 @@ export default function MessageRequestsPage() {
     try {
       const { error } = await supabase
         .from('message_requests')
-        .update({ status: 'rejected' })
+        .update({ status: 'rejected' } as any)
         .eq('id', requestId)
 
       if (error) throw error
