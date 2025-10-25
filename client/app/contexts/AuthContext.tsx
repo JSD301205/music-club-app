@@ -26,38 +26,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string): Promise<boolean> => {
     try {
-      // @ts-ignore - Supabase types
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single()
+        .single();
 
       if (error) {
-        console.error('Error fetching profile:', error)
-        
-        // If profile doesn't exist, sign out the user
+        console.error('Error fetching profile:', error);
+
         if (error.code === 'PGRST116') {
-          console.warn('Profile not found for user, signing out...')
-          // Don't await signOut to prevent hanging
-          supabase.auth.signOut().catch(e => console.error('Error during signOut:', e))
-          setUser(null)
-          setSession(null)
-          setProfile(null)
-          return false
+          console.warn('Profile not found for user, signing out...');
+          await supabase.auth.signOut();
+          setUser(null);
+          setSession(null);
+          setProfile(null);
+          return false;
         }
-        
-        // For other errors, just set profile to null but don't throw
-        setProfile(null)
-        return false
+
+        setProfile(null);
+        return false;
       }
-      
-      setProfile(data)
-      return true
+
+      setProfile(data);
+      return true;
     } catch (error) {
-      console.error('Error fetching profile:', error)
-      setProfile(null)
-      return false
+      console.error('Unexpected error fetching profile:', error);
+      setProfile(null);
+      return false;
     }
   }
 
@@ -97,149 +93,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session and user
     const initAuth = async () => {
       try {
-        // Robust getSession with retries and exponential backoff to handle intermittent network/cold-starts
-        const timeoutPromise = (ms: number) => new Promise((_, reject) => setTimeout(() => reject(new Error('getSession timeout')), ms))
+        const timeoutPromise = (ms: number) => new Promise((_, reject) => setTimeout(() => reject(new Error('getSession timeout')), ms));
 
-        let raceResult: any = null
-        let session: any = null
-        let sessionError: any = null
+        let session: Session | null = null;
+        const attempts = [10000, 12000, 15000];
 
-        const attempts = [10000, 12000, 15000] // timeouts per attempt (ms)
         for (let i = 0; i < attempts.length; i++) {
           try {
-            const p = supabase.auth.getSession()
-            raceResult = await Promise.race([p, timeoutPromise(attempts[i])]).catch((err) => ({ data: { session: null }, error: err }))
-            if (raceResult && raceResult.data && raceResult.data.session) {
-              session = raceResult.data.session
-              sessionError = raceResult.error ?? null
-              break
-            } else {
-              // record error and retry after a short backoff
-              sessionError = raceResult?.error ?? new Error('no session')
-              console.warn(`getSession attempt ${i + 1} failed:`, sessionError)
-              // small backoff before next attempt
-              if (i < attempts.length - 1) await new Promise(r => setTimeout(r, 500 * (i + 1)))
+            const result = await Promise.race([supabase.auth.getSession(), timeoutPromise(attempts[i])]) as { data: { session: Session | null } };
+            if (result?.data?.session) {
+              session = result.data.session;
+              break;
             }
           } catch (err) {
-            sessionError = err
-            console.error(`getSession attempt ${i + 1} error:`, err)
-            if (i < attempts.length - 1) await new Promise(r => setTimeout(r, 500 * (i + 1)))
+            console.warn(`getSession attempt ${i + 1} failed:`, err);
+            if (i < attempts.length - 1) await new Promise(r => setTimeout(r, 500 * (i + 1)));
           }
         }
 
-        // Fallback: try reading a cached session from localStorage if no session obtained
+        if (!session) {
+          console.error('Failed to retrieve session after retries.');
+          setUser(null);
+          setSession(null);
+          setProfile(null);
+          setLoading(false);
+          setHasInitialized(true);
+          return;
+        }
 
-        // If still no session, try reading a cached session from localStorage as a last-resort fallback
-        if (!session && typeof window !== 'undefined') {
-          try {
-            const ls = window.localStorage
-            const found = []
-            for (let i = 0; i < ls.length; i++) {
-              const key = ls.key(i) || ''
-              const val = ls.getItem(key)
-              if (!val) continue
-              // Heuristic: look for Supabase token objects
-              if (key.includes('supabase') || key.includes('sb-') || key.includes('auth')) {
-                try {
-                  const parsed = JSON.parse(val)
-                  // Typical Supabase storage contains currentSession or access_token
-                  if (parsed?.currentSession || parsed?.access_token || parsed?.user) {
-                    found.push(parsed)
-                  }
-                } catch (e) {
-                  // ignore non-json
-                }
-              }
-            }
+        setSession(session);
 
-            if (found.length > 0) {
-              // Take the first plausible entry
-              const p = found[0]
-              session = p.currentSession ?? p
-              // attempt to set a lightweight user object if present
-              const fallbackUser = p.currentSession?.user ?? p.user ?? null
-              if (fallbackUser) {
-                setSession(session)
-                setUser(fallbackUser)
-                console.warn('Using fallback session from localStorage')
-              }
-            }
-          } catch (e) {
-            console.error('Error reading localStorage for session fallback:', e)
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) {
+          console.error('Error getting user:', error);
+          await supabase.auth.signOut();
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+          setHasInitialized(true);
+          return;
+        }
+
+        setUser(user);
+
+        if (user) {
+          const profileFetchSuccess = await fetchProfile(user.id);
+          if (!profileFetchSuccess) {
+            console.warn('Profile fetch failed during initialization.');
           }
         }
-        
-        // Handle session errors (like refresh_token_not_found)
-        if (sessionError) {
-          console.error('Error getting session:', sessionError)
-          // Clear invalid session
-          setSession(null)
-          setUser(null)
-          setProfile(null)
-          setLoading(false)
-          setHasInitialized(true)
-          clearTimeout(timeout)
-          return
-        }
-        
-        setSession(session)
-        
-        if (session) {
-          // Use getUser() for secure authentication verification
-          const { data: { user }, error } = await supabase.auth.getUser()
-          
-          if (error) {
-            console.error('Error getting user:', error)
-            // If token is invalid, clear the session
-            if (error.message?.includes('refresh_token') || error.message?.includes('Invalid')) {
-              await supabase.auth.signOut().catch(e => console.error('Error signing out:', e))
-            }
-            setUser(null)
-            setProfile(null)
-            setLoading(false)
-            setHasInitialized(true)
-            clearTimeout(timeout)
-            return
-          }
-          
-          setUser(user)
-          
-          if (user) {
-            // Fetch profile with timeout protection
-            // Use longer timeout in production due to cold starts
-            const profileTimeoutDuration = process.env.NODE_ENV === 'production' ? 8000 : 5000
-            
-            // Use Promise.race to ensure we continue even if fetchProfile hangs
-            Promise.race([
-              fetchProfile(user.id),
-              new Promise((resolve) => 
-                setTimeout(() => {
-                  console.warn('Profile fetch timeout - proceeding without profile')
-                  setProfile(null)
-                  resolve(null)
-                }, profileTimeoutDuration)
-              )
-            ]).catch(err => {
-              console.error('Error in profile fetch:', err)
-              setProfile(null)
-            })
-          }
-        } else {
-          setUser(null)
-          setProfile(null)
-        }
-        
-        // IMPORTANT: Set initialized immediately, don't wait for profile
-        setLoading(false)
-        setHasInitialized(true)
-        clearTimeout(timeout)
+
+        setLoading(false);
+        setHasInitialized(true);
       } catch (error) {
-        console.error('Error in auth initialization:', error)
-        setUser(null)
-        setProfile(null)
-        setLoading(false)
-        setHasInitialized(true)
-        clearTimeout(timeout)
+        console.error('Unexpected error during auth initialization:', error);
+        setUser(null);
+        setProfile(null);
+        setLoading(false);
+        setHasInitialized(true);
       }
     }
 
