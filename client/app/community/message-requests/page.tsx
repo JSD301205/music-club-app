@@ -89,9 +89,9 @@ export default function MessageRequestsPage() {
 
   const handleApprove = async (requestId: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('message_requests')
-        .update({ status: 'approved' } as any)
+        .update({ status: 'approved' })
         .eq('id', requestId)
 
       if (error) throw error
@@ -105,9 +105,9 @@ export default function MessageRequestsPage() {
 
   const handleReject = async (requestId: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('message_requests')
-        .update({ status: 'rejected' } as any)
+        .update({ status: 'rejected' })
         .eq('id', requestId)
 
       if (error) throw error
