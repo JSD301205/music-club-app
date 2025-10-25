@@ -1,15 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+// This file now only exports types. 
+// For the Supabase client, import from './supabase-client' instead.
 import { Database } from '../types/database.types';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-// Create a single supabase client for interacting with your database
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
 // Types for database tables
 export interface Event {

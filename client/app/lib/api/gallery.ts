@@ -1,6 +1,8 @@
-import { supabase, GalleryItem } from '../supabase';
+import { createClient } from '../supabase-client';
+import { GalleryItem } from '../supabase';
 
 export async function getGalleryItems(year: number, category?: string) {
+  const supabase = createClient();
   let query = supabase
     .from('gallery_items')
     .select('*')
@@ -22,6 +24,7 @@ export async function getGalleryItems(year: number, category?: string) {
 }
 
 export async function createGalleryItem(item: Omit<GalleryItem, 'id' | 'created_at' | 'updated_at'>) {
+  const supabase = createClient();
   const { data, error } = await (supabase
     .from('gallery_items') as any)
     .insert([item])
@@ -37,6 +40,7 @@ export async function createGalleryItem(item: Omit<GalleryItem, 'id' | 'created_
 }
 
 export async function updateGalleryItem(id: number, updates: Partial<GalleryItem>) {
+  const supabase = createClient();
   const { data, error } = await (supabase
     .from('gallery_items') as any)
     .update(updates)
@@ -53,6 +57,7 @@ export async function updateGalleryItem(id: number, updates: Partial<GalleryItem
 }
 
 export async function deleteGalleryItem(id: number) {
+  const supabase = createClient();
   const { error } = await supabase
     .from('gallery_items')
     .delete()
@@ -65,6 +70,7 @@ export async function deleteGalleryItem(id: number) {
 }
 
 export async function uploadGalleryImage(file: File): Promise<string> {
+  const supabase = createClient();
   const fileExt = file.name.split('.').pop();
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
   const filePath = `${fileName}`;
