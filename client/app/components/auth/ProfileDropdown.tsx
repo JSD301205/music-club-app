@@ -28,8 +28,11 @@ export default function ProfileDropdown() {
 
   const handleSignOut = async () => {
     await signOut()
-    router.push('/')
-    router.refresh()
+    // Use setTimeout to avoid router update during render
+    setTimeout(() => {
+      router.push('/')
+      router.refresh()
+    }, 100)
   }
 
   // If no user, don't show anything

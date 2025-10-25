@@ -65,9 +65,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initAuth = async () => {
       try {
         // Get current session
-        const { data: { session } } = await supabase.auth.getSession()
+        const { data: { session }, error } = await supabase.auth.getSession()
         
         if (!mounted) return
+
+        // Only log error if it's not a session missing error (which is expected when logged out)
+        if (error && error.message !== 'Auth session missing!') {
+          console.error('Error getting session:', error)
+        }
 
         setSession(session)
         setUser(session?.user ?? null)
@@ -76,8 +81,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           await fetchProfile(session.user.id)
         }
-      } catch (error) {
-        console.error('Error initializing auth:', error)
+      } catch (error: any) {
+        // Only log error if it's not a session missing error
+        if (error?.message !== 'Auth session missing!') {
+          console.error('Error initializing auth:', error)
+        }
       } finally {
         if (mounted) {
           setLoading(false)

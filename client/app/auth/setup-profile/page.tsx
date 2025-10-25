@@ -37,16 +37,29 @@ export default function SetupProfilePage() {
   })
 
   useEffect(() => {
-    // Don't check profile completion while auth is still loading
+    // Don't check anything while auth is still loading
     if (authLoading) return
     
-    if (profile?.is_profile_complete) {
-      // Use setTimeout to avoid updating Router during render
-      setTimeout(() => {
-        router.push('/community')
-      }, 0)
+    let timer: NodeJS.Timeout
+    
+    // Redirect if no user
+    if (!user) {
+      timer = setTimeout(() => {
+        router.push('/auth/login')
+      }, 200)
     }
-  }, [profile, authLoading, router])
+    
+    // Redirect if profile is complete (only if user exists)
+    if (user && profile?.is_profile_complete) {
+      timer = setTimeout(() => {
+        router.push('/community')
+      }, 200)
+    }
+    
+    return () => {
+      if (timer) clearTimeout(timer)
+    }
+  }, [profile, authLoading, router, user])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -122,8 +135,8 @@ export default function SetupProfilePage() {
     )
   }
 
-  if (!user) {
-    router.push('/auth/login')
+  // Show loading if no user (will be handled by useEffect above)
+  if (!user && !authLoading) {
     return null
   }
 
