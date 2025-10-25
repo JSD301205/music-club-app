@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import Image from 'next/image'
-import { FaUpload, FaTimes, FaCrop, FaCheck } from 'react-icons/fa'
+import { FaUpload, FaTimes, FaCrop, FaCheck, FaSearchPlus, FaSearchMinus } from 'react-icons/fa'
 
 interface ImageUploadProps {
   currentImage?: string | null
@@ -11,12 +11,44 @@ interface ImageUploadProps {
   username: string
 }
 
+interface CropArea {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 export default function ImageUpload({ currentImage, onImageChange, onRemove, username }: ImageUploadProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [croppingMode, setCroppingMode] = useState(false)
+  const [zoom, setZoom] = useState(1)
+  const [cropArea, setCropArea] = useState<CropArea>({ x: 0, y: 0, width: 300, height: 300 })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 })
   const fileInputRef = useRef<HTMLInputElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (imgRef.current && selectedImage) {
+      const img = imgRef.current
+      img.onload = () => {
+        setImageSize({ width: img.naturalWidth, height: img.naturalHeight })
+        // Center the crop area initially
+        const displayWidth = img.clientWidth
+        const displayHeight = img.clientHeight
+        const cropSize = Math.min(displayWidth, displayHeight) * 0.8
+        setCropArea({
+          x: (displayWidth - cropSize) / 2,
+          y: (displayHeight - cropSize) / 2,
+          width: cropSize,
+          height: cropSize,
+        })
+      }
+    }
+  }, [selectedImage])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -34,10 +66,68 @@ export default function ImageUpload({ currentImage, onImageChange, onRemove, use
       const reader = new FileReader()
       reader.onload = (e) => {
         setSelectedImage(e.target?.result as string)
+        setZoom(1)
         setCroppingMode(true)
       }
       reader.readAsDataURL(file)
     }
+  }
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+    setDragStart({ x: e.clientX - cropArea.x, y: e.clientY - cropArea.y })
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault()
+    const touch = e.touches[0]
+    setIsDragging(true)
+    setDragStart({ x: touch.clientX - cropArea.x, y: touch.clientY - cropArea.y })
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !imgRef.current) return
+
+    const img = imgRef.current
+    const rect = img.getBoundingClientRect()
+    
+    let newX = e.clientX - dragStart.x
+    let newY = e.clientY - dragStart.y
+
+    // Constrain to image bounds
+    newX = Math.max(0, Math.min(newX, img.clientWidth - cropArea.width))
+    newY = Math.max(0, Math.min(newY, img.clientHeight - cropArea.height))
+
+    setCropArea(prev => ({ ...prev, x: newX, y: newY }))
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !imgRef.current) return
+
+    const touch = e.touches[0]
+    const img = imgRef.current
+    
+    let newX = touch.clientX - dragStart.x
+    let newY = touch.clientY - dragStart.y
+
+    // Constrain to image bounds
+    newX = Math.max(0, Math.min(newX, img.clientWidth - cropArea.width))
+    newY = Math.max(0, Math.min(newY, img.clientHeight - cropArea.height))
+
+    setCropArea(prev => ({ ...prev, x: newX, y: newY }))
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+
+  const handleZoomIn = () => {
+    setZoom(prev => Math.min(prev + 0.1, 3))
+  }
+
+  const handleZoomOut = () => {
+    setZoom(prev => Math.max(prev - 0.1, 0.5))
   }
 
   const handleCropAndSave = useCallback(() => {
@@ -53,13 +143,18 @@ export default function ImageUpload({ currentImage, onImageChange, onRemove, use
     canvas.width = size
     canvas.height = size
 
-    // Calculate dimensions to crop to square from center
-    const minDim = Math.min(img.naturalWidth, img.naturalHeight)
-    const sx = (img.naturalWidth - minDim) / 2
-    const sy = (img.naturalHeight - minDim) / 2
+    // Calculate the scale between display size and natural size
+    const scaleX = img.naturalWidth / img.clientWidth
+    const scaleY = img.naturalHeight / img.clientHeight
+
+    // Calculate crop coordinates in natural image size
+    const sx = cropArea.x * scaleX
+    const sy = cropArea.y * scaleY
+    const sWidth = cropArea.width * scaleX
+    const sHeight = cropArea.height * scaleY
 
     // Draw cropped and resized image
-    ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size)
+    ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, size, size)
 
     // Convert canvas to blob
     canvas.toBlob(
@@ -71,12 +166,13 @@ export default function ImageUpload({ currentImage, onImageChange, onRemove, use
           onImageChange(file)
           setSelectedImage(null)
           setCroppingMode(false)
+          setZoom(1)
         }
       },
       'image/jpeg',
       0.9 // Quality
     )
-  }, [selectedImage, onImageChange])
+  }, [selectedImage, onImageChange, cropArea])
 
   const handleCancel = () => {
     setSelectedImage(null)
@@ -153,44 +249,96 @@ export default function ImageUpload({ currentImage, onImageChange, onRemove, use
 
       {/* Crop Modal */}
       {croppingMode && selectedImage && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-          <div className="bg-gray-900 rounded-2xl p-6 max-w-2xl w-full">
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 rounded-2xl p-6 max-w-3xl w-full max-h-[90vh] overflow-auto">
             <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
               <FaCrop />
-              Crop & Resize Image
+              Crop Your Image
             </h3>
 
             <div className="relative bg-gray-800 rounded-lg p-4 mb-4">
-              <div className="flex items-center justify-center">
-                <div className="relative max-w-md max-h-96 overflow-hidden">
+              <div 
+                ref={containerRef}
+                className="flex items-center justify-center relative select-none"
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleMouseUp}
+              >
+                <div className="relative inline-block">
                   <img
                     ref={imgRef}
                     src={selectedImage}
                     alt="Crop preview"
-                    className="max-w-full max-h-96 object-contain"
+                    className="max-w-full max-h-[400px] object-contain"
+                    style={{ transform: `scale(${zoom})` }}
+                    draggable={false}
                   />
-                  {/* Crop overlay */}
-                  <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute inset-0 bg-black/40"></div>
-                    <div
-                      className="absolute border-4 border-purple-500"
-                      style={{
-                        left: '50%',
-                        top: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: '300px',
-                        height: '300px',
-                        maxWidth: '90%',
-                        maxHeight: '90%',
-                      }}
-                    >
-                      <div className="absolute inset-0 bg-transparent"></div>
+                  
+                  {/* Darkened overlay */}
+                  <div className="absolute inset-0 bg-black/50 pointer-events-none" />
+                  
+                  {/* Draggable crop area */}
+                  <div
+                    className="absolute border-4 border-purple-500 cursor-move bg-transparent shadow-2xl"
+                    style={{
+                      left: `${cropArea.x}px`,
+                      top: `${cropArea.y}px`,
+                      width: `${cropArea.width}px`,
+                      height: `${cropArea.height}px`,
+                      boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
+                    }}
+                    onMouseDown={handleMouseDown}
+                    onTouchStart={handleTouchStart}
+                  >
+                    {/* Corner handles */}
+                    <div className="absolute -top-2 -left-2 w-4 h-4 bg-purple-500 rounded-full" />
+                    <div className="absolute -top-2 -right-2 w-4 h-4 bg-purple-500 rounded-full" />
+                    <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-purple-500 rounded-full" />
+                    <div className="absolute -bottom-2 -right-2 w-4 h-4 bg-purple-500 rounded-full" />
+                    
+                    {/* Grid lines */}
+                    <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
+                      <div className="border-r border-b border-white/30" />
+                      <div className="border-r border-b border-white/30" />
+                      <div className="border-b border-white/30" />
+                      <div className="border-r border-b border-white/30" />
+                      <div className="border-r border-b border-white/30" />
+                      <div className="border-b border-white/30" />
+                      <div className="border-r border-white/30" />
+                      <div className="border-r border-white/30" />
+                      <div />
                     </div>
                   </div>
                 </div>
               </div>
+
+              {/* Zoom controls */}
+              <div className="flex items-center justify-center gap-4 mt-4">
+                <button
+                  type="button"
+                  onClick={handleZoomOut}
+                  className="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all flex items-center gap-2"
+                  disabled={zoom <= 0.5}
+                >
+                  <FaSearchMinus />
+                </button>
+                <span className="text-white text-sm font-medium min-w-[60px] text-center">
+                  {Math.round(zoom * 100)}%
+                </span>
+                <button
+                  type="button"
+                  onClick={handleZoomIn}
+                  className="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all flex items-center gap-2"
+                  disabled={zoom >= 3}
+                >
+                  <FaSearchPlus />
+                </button>
+              </div>
+
               <p className="text-gray-400 text-center text-sm mt-4">
-                Image will be cropped to a square from the center
+                💡 Drag the purple square to adjust crop area • Use zoom buttons to scale
               </p>
             </div>
 
