@@ -5,12 +5,15 @@ import { createClient } from '@/app/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FaGoogle, FaGithub, FaEnvelope, FaLock, FaUser } from 'react-icons/fa'
+import RoleSelector from './RoleSelector'
+import { UserRole } from '@/app/types/database.types'
 
 export default function SignUpForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [fullName, setFullName] = useState('')
+  const [role, setRole] = useState<UserRole>('member')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -23,11 +26,16 @@ export default function SignUpForm() {
 
     try {
       // Check if username is already taken
-      const { data: existingUser } = await supabase
+      const { data: existingUser, error: checkError } = await supabase
         .from('profiles')
         .select('username')
         .eq('username', username.toLowerCase())
-        .single()
+        .maybeSingle()
+
+      // Only error if it's NOT a "no rows" error
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw checkError
+      }
 
       if (existingUser) {
         setError('Username already taken')
@@ -44,21 +52,35 @@ export default function SignUpForm() {
             username: username.toLowerCase(),
             full_name: fullName,
             is_profile_complete: false,
+            role: role,
           },
         },
       })
 
       if (error) throw error
 
-      if (data.user) {
-        // Create initial profile record
+      // Replace the profile creation section in SignUpForm.tsx with this:
+
+    if (data.user) {
+      // Check if profile already exists
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', data.user.id)
+        .maybeSingle()
+
+      // Only create profile if it doesn't exist
+      if (!existingProfile) {
         const profileData = {
           id: data.user.id,
           username: username.toLowerCase(),
           full_name: fullName,
-          email: email,
           is_profile_complete: false,
-          role: 'member',
+          role: role,
+          is_visible_in_community: role === 'member',
+          allow_messages_from: 'members_only' as const,
+          instruments: [],
+          musical_interests: [],
         }
 
         const { error: profileError } = await supabase
@@ -67,12 +89,22 @@ export default function SignUpForm() {
 
         if (profileError) {
           console.error('Profile creation error:', profileError)
-          // Don't throw - profile might already exist from trigger
         }
-
-        // Redirect to profile setup
-        router.push('/auth/setup-profile')
       }
+
+        // Update user metadata to include role for middleware checks
+      await supabase.auth.updateUser({
+        data: {
+          username: username.toLowerCase(),
+          full_name: fullName,
+          is_profile_complete: false,
+          role: role,
+        },
+      })
+
+      // Redirect to profile setup
+      router.push('/auth/setup-profile')
+    }
     } catch (error: any) {
       setError(error.message || 'An error occurred during signup')
     } finally {
@@ -213,6 +245,9 @@ export default function SignUpForm() {
               </div>
             </div>
           </div>
+
+          {/* Role Selection */}
+          <RoleSelector selectedRole={role} onRoleChange={setRole} />
 
           <div>
             <button
