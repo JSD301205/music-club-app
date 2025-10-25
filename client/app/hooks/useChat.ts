@@ -74,6 +74,29 @@ export function useConversations(userId: string | undefined) {
 
   useEffect(() => {
     fetchConversations()
+
+    // Subscribe to message changes to update unread counts
+    if (!userId) return
+
+    const channel = supabase
+      .channel('conversations-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'messages',
+        },
+        () => {
+          // Refetch conversations when any message changes
+          fetchConversations()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [fetchConversations])
 
   return { conversations, loading, refetch: fetchConversations }
