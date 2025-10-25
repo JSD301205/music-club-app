@@ -52,17 +52,18 @@ export default function SignUpForm() {
 
       if (data.user) {
         // Create initial profile record
+        const profileData = {
+          id: data.user.id,
+          username: username.toLowerCase(),
+          full_name: fullName,
+          email: email,
+          is_profile_complete: false,
+          role: 'member',
+        }
+
         const { error: profileError } = await supabase
           .from('profiles')
-          // @ts-ignore - Supabase type inference issue with insert
-          .insert({
-            id: data.user.id,
-            username: username.toLowerCase(),
-            full_name: fullName,
-            email: email,
-            is_profile_complete: false,
-            role: 'member',
-          })
+          .insert(profileData as any)
 
         if (profileError) {
           console.error('Profile creation error:', profileError)
