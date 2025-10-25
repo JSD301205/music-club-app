@@ -69,11 +69,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Safety timeout to ensure loading doesn't stay true forever (only if not initialized)
-    // Use longer timeout for production environments (Vercel has slower cold starts)
-    const timeoutDuration = process.env.NODE_ENV === 'production' ? 15000 : 10000
+    // Use much longer timeout for production environments (Vercel has slower cold starts)
+    const timeoutDuration = process.env.NODE_ENV === 'production' ? 30000 : 10000
     const timeout = setTimeout(() => {
       if (!hasInitialized) {
         console.warn('Auth loading timeout - forcing loading to false')
+        console.warn('If you see this frequently, check Supabase connection and API performance')
         setLoading(false)
         setHasInitialized(true)
       }
@@ -94,34 +95,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Get initial session and user
-    supabase.auth.getSession().then(async ({ data: { session }, error: sessionError }) => {
-      // console.log('AuthContext - Session loaded:', session ? 'exists' : 'none')
-      
-      // Handle session errors (like refresh_token_not_found)
-      if (sessionError) {
-        console.error('Error getting session:', sessionError)
-        // Clear invalid session
-        setSession(null)
-        setUser(null)
-        setProfile(null)
-        setLoading(false)
-        setHasInitialized(true)
-        clearTimeout(timeout)
-        return
-      }
-      
-      setSession(session)
-      
-      if (session) {
-        // Use getUser() for secure authentication verification
-        const { data: { user }, error } = await supabase.auth.getUser()
+    const initAuth = async () => {
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
         
-        if (error) {
-          console.error('Error getting user:', error)
-          // If token is invalid, clear the session
-          if (error.message?.includes('refresh_token') || error.message?.includes('Invalid')) {
-            await supabase.auth.signOut().catch(e => console.error('Error signing out:', e))
-          }
+        // Handle session errors (like refresh_token_not_found)
+        if (sessionError) {
+          console.error('Error getting session:', sessionError)
+          // Clear invalid session
+          setSession(null)
           setUser(null)
           setProfile(null)
           setLoading(false)
@@ -130,35 +112,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return
         }
         
-        // console.log('AuthContext - Initial user:', user)
-        setUser(user)
+        setSession(session)
         
-        if (user) {
-          // Add timeout for fetchProfile to prevent hanging
-          // Use longer timeout in production due to cold starts
-          const profileTimeoutDuration = process.env.NODE_ENV === 'production' ? 8000 : 5000
-          const profileTimeout = setTimeout(() => {
-            console.warn('Profile fetch timeout - proceeding without profile')
-            setProfile(null)
-          }, profileTimeoutDuration)
+        if (session) {
+          // Use getUser() for secure authentication verification
+          const { data: { user }, error } = await supabase.auth.getUser()
           
-          await fetchProfile(user.id).finally(() => clearTimeout(profileTimeout))
+          if (error) {
+            console.error('Error getting user:', error)
+            // If token is invalid, clear the session
+            if (error.message?.includes('refresh_token') || error.message?.includes('Invalid')) {
+              await supabase.auth.signOut().catch(e => console.error('Error signing out:', e))
+            }
+            setUser(null)
+            setProfile(null)
+            setLoading(false)
+            setHasInitialized(true)
+            clearTimeout(timeout)
+            return
+          }
+          
+          setUser(user)
+          
+          if (user) {
+            // Add timeout for fetchProfile to prevent hanging
+            // Use longer timeout in production due to cold starts
+            const profileTimeoutDuration = process.env.NODE_ENV === 'production' ? 8000 : 5000
+            const profileTimeout = setTimeout(() => {
+              console.warn('Profile fetch timeout - proceeding without profile')
+              setProfile(null)
+            }, profileTimeoutDuration)
+            
+            await fetchProfile(user.id).finally(() => clearTimeout(profileTimeout))
+          }
+        } else {
+          setUser(null)
+          setProfile(null)
         }
-      } else {
+        
+        setLoading(false)
+        setHasInitialized(true)
+        clearTimeout(timeout)
+      } catch (error) {
+        console.error('Error in auth initialization:', error)
         setUser(null)
         setProfile(null)
+        setLoading(false)
+        setHasInitialized(true)
+        clearTimeout(timeout)
       }
-      
-      setLoading(false)
-      setHasInitialized(true)
-      clearTimeout(timeout)
-    }).catch((error) => {
-      console.error('Error getting session:', error)
-      setUser(null)
-      setLoading(false)
-      setHasInitialized(true)
-      clearTimeout(timeout)
-    })
+    }
+
+    initAuth()
 
     // Listen for auth changes
     const {
