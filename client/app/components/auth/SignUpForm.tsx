@@ -59,18 +59,25 @@ export default function SignUpForm() {
 
       if (error) throw error
 
-      if (data.user) {
-        // Create initial profile record
+      // Replace the profile creation section in SignUpForm.tsx with this:
+
+    if (data.user) {
+      // Check if profile already exists
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', data.user.id)
+        .maybeSingle()
+
+      // Only create profile if it doesn't exist
+      if (!existingProfile) {
         const profileData = {
           id: data.user.id,
           username: username.toLowerCase(),
           full_name: fullName,
-          // Don't store email in profiles - it's already in auth.users
           is_profile_complete: false,
           role: role,
-          // Members visible by default, enthusiasts not
           is_visible_in_community: role === 'member',
-          // Members can receive from members_only, enthusiasts same
           allow_messages_from: 'members_only' as const,
           instruments: [],
           musical_interests: [],
@@ -78,26 +85,26 @@ export default function SignUpForm() {
 
         const { error: profileError } = await supabase
           .from('profiles')
-          .upsert(profileData as any, { onConflict: 'id' })
+          .insert(profileData as any)
 
         if (profileError) {
           console.error('Profile creation error:', profileError)
-          // Don't throw - profile might already exist from trigger
         }
+      }
 
         // Update user metadata to include role for middleware checks
-        await supabase.auth.updateUser({
-          data: {
-            username: username.toLowerCase(),
-            full_name: fullName,
-            is_profile_complete: false,
-            role: role,
-          },
-        })
+      await supabase.auth.updateUser({
+        data: {
+          username: username.toLowerCase(),
+          full_name: fullName,
+          is_profile_complete: false,
+          role: role,
+        },
+      })
 
-        // Redirect to profile setup
-        router.push('/auth/setup-profile')
-      }
+      // Redirect to profile setup
+      router.push('/auth/setup-profile')
+    }
     } catch (error: any) {
       setError(error.message || 'An error occurred during signup')
     } finally {
