@@ -99,17 +99,72 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         // Wrap getSession with timeout to prevent indefinite hanging
         const sessionPromise = supabase.auth.getSession()
-        const timeoutPromise = new Promise((_, reject) => 
+        const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('getSession timeout')), 10000)
         )
-        
-        const { data: { session }, error: sessionError } = await Promise.race([
-          sessionPromise,
-          timeoutPromise
-        ]).catch((err) => {
+
+        // Try getSession with a timeout. If it fails, we'll retry once, then fall back to localStorage.
+        let raceResult: any = await Promise.race([sessionPromise, timeoutPromise]).catch((err) => {
           console.error('Session fetch failed or timed out:', err)
           return { data: { session: null }, error: err }
-        }) as any
+        })
+
+        // If no session and no fatal sessionError, attempt one retry with longer timeout
+        if ((!raceResult || !raceResult.data?.session) && !(raceResult && raceResult.error)) {
+          try {
+            const retryPromise = supabase.auth.getSession()
+            const retryTimeout = new Promise((_, reject) => setTimeout(() => reject(new Error('getSession retry timeout')), 15000))
+            raceResult = await Promise.race([retryPromise, retryTimeout]).catch((err) => {
+              console.error('Session retry failed or timed out:', err)
+              return { data: { session: null }, error: err }
+            })
+          } catch (e) {
+            // swallow, handled below
+          }
+        }
+
+        let session = raceResult?.data?.session ?? null
+        const sessionError = raceResult?.error ?? null
+
+        // If still no session, try reading a cached session from localStorage as a last-resort fallback
+        if (!session && typeof window !== 'undefined') {
+          try {
+            const ls = window.localStorage
+            const found = []
+            for (let i = 0; i < ls.length; i++) {
+              const key = ls.key(i) || ''
+              const val = ls.getItem(key)
+              if (!val) continue
+              // Heuristic: look for Supabase token objects
+              if (key.includes('supabase') || key.includes('sb-') || key.includes('auth')) {
+                try {
+                  const parsed = JSON.parse(val)
+                  // Typical Supabase storage contains currentSession or access_token
+                  if (parsed?.currentSession || parsed?.access_token || parsed?.user) {
+                    found.push(parsed)
+                  }
+                } catch (e) {
+                  // ignore non-json
+                }
+              }
+            }
+
+            if (found.length > 0) {
+              // Take the first plausible entry
+              const p = found[0]
+              session = p.currentSession ?? p
+              // attempt to set a lightweight user object if present
+              const fallbackUser = p.currentSession?.user ?? p.user ?? null
+              if (fallbackUser) {
+                setSession(session)
+                setUser(fallbackUser)
+                console.warn('Using fallback session from localStorage')
+              }
+            }
+          } catch (e) {
+            console.error('Error reading localStorage for session fallback:', e)
+          }
+        }
         
         // Handle session errors (like refresh_token_not_found)
         if (sessionError) {
