@@ -24,7 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [hasInitialized, setHasInitialized] = useState(false)
   const supabase = createClient()
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string): Promise<boolean> => {
     try {
       // @ts-ignore - Supabase types
       const { data, error } = await supabase
@@ -39,18 +39,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // If profile doesn't exist, sign out the user
         if (error.code === 'PGRST116') {
           console.warn('Profile not found for user, signing out...')
-          await supabase.auth.signOut()
+          // Don't await signOut to prevent hanging
+          supabase.auth.signOut().catch(e => console.error('Error during signOut:', e))
           setUser(null)
           setSession(null)
           setProfile(null)
-          return
+          return false
         }
-        throw error
+        
+        // For other errors, just set profile to null but don't throw
+        setProfile(null)
+        return false
       }
+      
       setProfile(data)
+      return true
     } catch (error) {
       console.error('Error fetching profile:', error)
       setProfile(null)
+      return false
     }
   }
 
@@ -107,7 +114,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(user)
         
         if (user) {
-          await fetchProfile(user.id)
+          // Add timeout for fetchProfile to prevent hanging
+          const profileTimeout = setTimeout(() => {
+            console.warn('Profile fetch timeout - proceeding without profile')
+            setProfile(null)
+          }, 5000)
+          
+          await fetchProfile(user.id).finally(() => clearTimeout(profileTimeout))
         }
       } else {
         setUser(null)
@@ -148,7 +161,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(user)
         
         if (user) {
-          await fetchProfile(user.id)
+          // Add timeout for fetchProfile to prevent hanging
+          const profileTimeout = setTimeout(() => {
+            console.warn('Profile fetch timeout in auth change - proceeding without profile')
+            setProfile(null)
+          }, 5000)
+          
+          fetchProfile(user.id).finally(() => clearTimeout(profileTimeout))
         }
       } else {
         setUser(null)

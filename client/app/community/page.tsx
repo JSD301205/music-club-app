@@ -14,7 +14,7 @@ export default function CommunityPage() {
   const { user, loading: authLoading } = useAuth()
   const [members, setMembers] = useState<Profile[]>([])
   const [filteredMembers, setFilteredMembers] = useState<Profile[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedInstrument, setSelectedInstrument] = useState<string>('')
   const [selectedGenre, setSelectedGenre] = useState<string>('')
@@ -23,16 +23,25 @@ export default function CommunityPage() {
   const supabase = createClient()
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/auth/login')
-      return
-    }
-    
-    // Only fetch members when auth is ready and user exists
-    if (!authLoading && user) {
+    // Handle authentication and data fetching
+    const initializePage = async () => {
+      if (authLoading) {
+        // Still checking auth, wait
+        return
+      }
+
+      if (!user) {
+        // Not authenticated, redirect to login
+        router.push('/auth/login')
+        return
+      }
+
+      // User is authenticated, fetch members
       fetchMembers()
     }
-  }, [user, authLoading, router])
+
+    initializePage()
+  }, [user, authLoading])
 
   // Remove the separate fetchMembers useEffect since it's now called above
   // useEffect(() => {
