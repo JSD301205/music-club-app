@@ -42,13 +42,19 @@ export default function LoginForm() {
 
           const profile = profileData as any
           if (!profile || !profile.is_profile_complete) {
-            router.push('/auth/setup-profile')
+            router.refresh()
+            // Delay to ensure auth state is synced
+            setTimeout(() => {
+              router.push('/auth/setup-profile')
+              router.refresh()
+            }, 500)
             return
           }
         }
 
         // Profile is complete, go to community
         router.push('/community')
+        router.refresh()
       }
     } catch (error: any) {
       setError(error.message || 'Invalid email or password')
