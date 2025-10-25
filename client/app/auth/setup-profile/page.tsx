@@ -135,6 +135,9 @@ export default function SetupProfilePage() {
             <p className="text-gray-300">
               Tell us about your musical journey to connect with fellow musicians
             </p>
+            <p className="text-gray-400 text-sm mt-2">
+              Complete your profile to be visible in the community and connect with other musicians
+            </p>
           </div>
 
           {error && (
@@ -244,14 +247,14 @@ export default function SetupProfilePage() {
               />
             </div>
 
-            <div className="flex justify-end space-x-4">
-              {/* <button
+            <div className="flex justify-between items-center">
+              <button
                 type="button"
                 onClick={() => router.push('/')}
                 className="px-6 py-3 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800/50 transition-all"
               >
                 Skip for now
-              </button> */}
+              </button>
               <button
                 type="submit"
                 disabled={loading || formData.instruments.length === 0 || formData.musicalInterests.length === 0}

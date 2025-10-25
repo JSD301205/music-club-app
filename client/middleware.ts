@@ -124,9 +124,24 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    // If user is logged in and tries to access auth pages, redirect to community
+    // If user is logged in and tries to access auth pages (login/signup), redirect appropriately
     if (session?.user && (url.pathname.startsWith('/auth/login') || url.pathname.startsWith('/auth/signup'))) {
-      url.pathname = '/community'
+      // Check if profile is complete
+      const isProfileComplete = session.user.user_metadata?.is_profile_complete
+      
+      if (isProfileComplete === undefined) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_profile_complete')
+          .eq('id', session.user.id)
+          .single()
+        
+        // Redirect to setup if profile not complete, otherwise to community
+        url.pathname = profile?.is_profile_complete ? '/community' : '/auth/setup-profile'
+      } else {
+        url.pathname = isProfileComplete ? '/community' : '/auth/setup-profile'
+      }
+      
       return NextResponse.redirect(url)
     }
 
