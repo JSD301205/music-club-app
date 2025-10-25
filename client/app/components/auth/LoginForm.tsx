@@ -28,27 +28,30 @@ export default function LoginForm() {
       if (error) throw error
 
       if (data.user) {
-        // Check if profile exists
-        // @ts-ignore - Supabase types
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('is_profile_complete')
-          .eq('id', data.user.id)
-          .single()
+        // Check profile completion status from user metadata first
+        const isProfileComplete = data.user.user_metadata?.is_profile_complete
 
-        // Cast to any to avoid type errors
-        const profile = profileData as any
+        if (isProfileComplete === false || isProfileComplete === undefined) {
+          // Need to check database if not in metadata
+          // @ts-ignore - Supabase type inference
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('is_profile_complete')
+            .eq('id', data.user.id)
+            .single()
 
-        // If no profile or profile not complete, redirect to setup
-        if (!profile || !profile.is_profile_complete) {
-          router.push('/auth/setup-profile')
-        } else {
-          router.push('/community')
+          const profile = profileData as any
+          if (!profile || !profile.is_profile_complete) {
+            router.push('/auth/setup-profile')
+            return
+          }
         }
-        router.refresh()
+
+        // Profile is complete, go to community
+        router.push('/community')
       }
     } catch (error: any) {
-      setError(error.message)
+      setError(error.message || 'Invalid email or password')
     } finally {
       setLoading(false)
     }

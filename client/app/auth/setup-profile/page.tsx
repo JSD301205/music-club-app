@@ -59,18 +59,31 @@ export default function SetupProfilePage() {
         is_profile_complete: true,
       }
 
-      const { error } = await supabase
+      // Update profile in database
+      const { error: profileError } = await supabase
         .from('profiles')
         // @ts-ignore - Supabase types use Json type for arrays
         .update(updateData)
         .eq('id', user.id)
 
-      if (error) throw error
+      if (profileError) throw profileError
+
+      // Update user metadata to avoid database calls in middleware
+      const { error: metadataError } = await supabase.auth.updateUser({
+        data: {
+          is_profile_complete: true,
+        },
+      })
+
+      if (metadataError) {
+        console.error('Error updating user metadata:', metadataError)
+        // Don't throw - profile is already updated
+      }
 
       await refreshProfile()
       router.push('/community')
     } catch (error: any) {
-      setError(error.message)
+      setError(error.message || 'An error occurred while updating your profile')
     } finally {
       setLoading(false)
     }

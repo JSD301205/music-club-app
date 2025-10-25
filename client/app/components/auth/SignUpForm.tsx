@@ -26,7 +26,7 @@ export default function SignUpForm() {
       const { data: existingUser } = await supabase
         .from('profiles')
         .select('username')
-        .eq('username', username)
+        .eq('username', username.toLowerCase())
         .single()
 
       if (existingUser) {
@@ -35,13 +35,15 @@ export default function SignUpForm() {
         return
       }
 
+      // Sign up the user
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            username,
+            username: username.toLowerCase(),
             full_name: fullName,
+            is_profile_complete: false,
           },
         },
       })
@@ -49,11 +51,29 @@ export default function SignUpForm() {
       if (error) throw error
 
       if (data.user) {
+        // Create initial profile record
+        const { error: profileError } = await supabase
+          .from('profiles')
+          // @ts-ignore - Supabase type inference issue with insert
+          .insert({
+            id: data.user.id,
+            username: username.toLowerCase(),
+            full_name: fullName,
+            email: email,
+            is_profile_complete: false,
+            role: 'member',
+          })
+
+        if (profileError) {
+          console.error('Profile creation error:', profileError)
+          // Don't throw - profile might already exist from trigger
+        }
+
         // Redirect to profile setup
         router.push('/auth/setup-profile')
       }
     } catch (error: any) {
-      setError(error.message)
+      setError(error.message || 'An error occurred during signup')
     } finally {
       setLoading(false)
     }
