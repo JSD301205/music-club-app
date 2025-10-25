@@ -79,16 +79,29 @@ export function useConversations(userId: string | undefined) {
     if (!userId) return
 
     const channel = supabase
-      .channel('conversations-updates')
+      .channel(`conversations-updates-${userId}`)
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen to INSERT, UPDATE, DELETE
+          event: 'INSERT',
           schema: 'public',
           table: 'messages',
         },
         () => {
-          // Refetch conversations when any message changes
+          // Refetch conversations when new messages arrive
+          fetchConversations()
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `receiver_id=eq.${userId}`, // Only listen to updates for messages we receive
+        },
+        () => {
+          // Refetch conversations when messages are marked as read
           fetchConversations()
         }
       )
@@ -97,7 +110,7 @@ export function useConversations(userId: string | undefined) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [fetchConversations])
+  }, [fetchConversations, userId])
 
   return { conversations, loading, refetch: fetchConversations }
 }
