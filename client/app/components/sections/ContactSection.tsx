@@ -48,7 +48,7 @@ const ContactSection = () => {
         EMAILJS_CONFIG.PUBLIC_KEY
       );
 
-      console.log('Email sent successfully:', result);
+      // console.log('Email sent successfully:', result);
       setStatus('success');
       setFormData({
         name: '',

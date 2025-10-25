@@ -41,9 +41,9 @@ export default function JamPostDetailPage() {
 
   const loadPost = async () => {
     try {
-      console.log('Loading post with ID:', postId);
+      // console.log('Loading post with ID:', postId);
       const data = await getJamPostById(parseInt(postId));
-      console.log('Post data loaded:', data);
+      // console.log('Post data loaded:', data);
       setPost(data.post);
       setResponses(data.responses);
       

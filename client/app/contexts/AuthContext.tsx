@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Get initial session and user
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      console.log('AuthContext - Session loaded:', session ? 'exists' : 'none')
+      // console.log('AuthContext - Session loaded:', session ? 'exists' : 'none')
       setSession(session)
       
       if (session) {
@@ -99,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return
         }
         
-        console.log('AuthContext - Initial user:', user)
+        // console.log('AuthContext - Initial user:', user)
         setUser(user)
         
         if (user) {
@@ -123,7 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('AuthContext - Auth state changed:', _event)
+      // console.log('AuthContext - Auth state changed:', _event)
       setSession(session)
       
       if (session) {
@@ -138,7 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return
         }
         
-        console.log('AuthContext - Setting user to:', user)
+        // console.log('AuthContext - Setting user to:', user)
         setUser(user)
         
         if (user) {
