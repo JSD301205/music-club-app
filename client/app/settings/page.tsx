@@ -157,13 +157,22 @@ export default function SettingsPage() {
               </label>
               <div className="flex items-center gap-6">
                 {formData.avatarUrl ? (
-                  <Image
-                    src={formData.avatarUrl}
-                    alt="Profile"
-                    width={100}
-                    height={100}
-                    className="rounded-full border-4 border-purple-500"
-                  />
+                  <div className="relative w-24 h-24 rounded-full border-4 border-purple-500 bg-purple-600 flex items-center justify-center overflow-hidden">
+                    <Image
+                      src={formData.avatarUrl}
+                      alt="Profile"
+                      width={100}
+                      height={100}
+                      className="rounded-full object-cover"
+                      onError={(e) => {
+                        // On error, hide image and show fallback
+                        e.currentTarget.style.display = 'none'
+                      }}
+                    />
+                    <span className="text-white text-3xl font-bold absolute">
+                      {formData.username.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
                 ) : (
                   <div className="w-24 h-24 rounded-full bg-purple-600 flex items-center justify-center border-4 border-purple-500">
                     <span className="text-white text-3xl font-bold">
@@ -177,10 +186,13 @@ export default function SettingsPage() {
                     value={formData.avatarUrl}
                     onChange={(e) => setFormData(prev => ({ ...prev, avatarUrl: e.target.value }))}
                     className="w-full px-4 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Avatar URL (e.g., https://...)"
+                    placeholder="https://example.com/image.jpg"
                   />
                   <p className="text-gray-400 text-sm mt-2">
-                    Paste a URL to your profile picture
+                    ⚠️ Use a <strong>direct image URL</strong> (ending in .jpg, .png, etc.)
+                  </p>
+                  <p className="text-gray-400 text-xs mt-1">
+                    For Unsplash: Right-click image → "Copy image address" (not page URL)
                   </p>
                 </div>
               </div>

@@ -9,6 +9,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { FaSearch, FaFilter, FaGuitar, FaMusic, FaEnvelope } from 'react-icons/fa'
 import { INSTRUMENTS, GENRES } from '@/app/constants/music'
+import Avatar from '@/app/components/ui/Avatar'
 
 export default function CommunityPage() {
   const { user, loading: authLoading } = useAuth()
@@ -221,21 +222,13 @@ export default function CommunityPage() {
               <div className="p-6">
                 {/* Profile Picture */}
                 <div className="flex items-start gap-4 mb-4">
-                  {member.avatar_url ? (
-                    <Image
-                      src={member.avatar_url}
-                      alt={member.username}
-                      width={80}
-                      height={80}
-                      className="rounded-full border-4 border-purple-500"
-                    />
-                  ) : (
-                    <div className="w-20 h-20 rounded-full bg-purple-600 flex items-center justify-center border-4 border-purple-500">
-                      <span className="text-white text-2xl font-bold">
-                        {member.username.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
+                  <Avatar
+                    src={member.avatar_url}
+                    alt={member.username}
+                    fallback={member.username}
+                    size="lg"
+                    className="border-4 border-purple-500"
+                  />
 
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-white mb-1">
