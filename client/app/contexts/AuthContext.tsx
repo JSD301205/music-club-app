@@ -97,7 +97,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session and user
     const initAuth = async () => {
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        // Wrap getSession with timeout to prevent indefinite hanging
+        const sessionPromise = supabase.auth.getSession()
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('getSession timeout')), 10000)
+        )
+        
+        const { data: { session }, error: sessionError } = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ]).catch((err) => {
+          console.error('Session fetch failed or timed out:', err)
+          return { data: { session: null }, error: err }
+        }) as any
         
         // Handle session errors (like refresh_token_not_found)
         if (sessionError) {
@@ -135,21 +147,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(user)
           
           if (user) {
-            // Add timeout for fetchProfile to prevent hanging
+            // Fetch profile with timeout protection
             // Use longer timeout in production due to cold starts
             const profileTimeoutDuration = process.env.NODE_ENV === 'production' ? 8000 : 5000
-            const profileTimeout = setTimeout(() => {
-              console.warn('Profile fetch timeout - proceeding without profile')
-              setProfile(null)
-            }, profileTimeoutDuration)
             
-            await fetchProfile(user.id).finally(() => clearTimeout(profileTimeout))
+            // Use Promise.race to ensure we continue even if fetchProfile hangs
+            Promise.race([
+              fetchProfile(user.id),
+              new Promise((resolve) => 
+                setTimeout(() => {
+                  console.warn('Profile fetch timeout - proceeding without profile')
+                  setProfile(null)
+                  resolve(null)
+                }, profileTimeoutDuration)
+              )
+            ]).catch(err => {
+              console.error('Error in profile fetch:', err)
+              setProfile(null)
+            })
           }
         } else {
           setUser(null)
           setProfile(null)
         }
         
+        // IMPORTANT: Set initialized immediately, don't wait for profile
         setLoading(false)
         setHasInitialized(true)
         clearTimeout(timeout)
