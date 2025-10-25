@@ -99,15 +99,7 @@ export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) 
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp)
-    const now = new Date()
-    const diffInMs = now.getTime() - date.getTime()
-    const diffInHours = diffInMs / (1000 * 60 * 60)
-
-    if (diffInHours < 24) {
-      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-    } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    }
+    return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
   }
 
   if (loading || !otherUser) {
