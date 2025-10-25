@@ -27,7 +27,7 @@ const sizePixels = {
 
 export default function Avatar({ src, alt, fallback, size = 'md', className = '' }: AvatarProps) {
   const [imageError, setImageError] = useState(false)
-  const [imageLoading, setImageLoading] = useState(true)
+  const [imageLoaded, setImageLoaded] = useState(false)
 
   const sizeClass = sizeClasses[size]
   const pixelSize = sizePixels[size]
@@ -40,30 +40,33 @@ export default function Avatar({ src, alt, fallback, size = 'md', className = ''
       className={`relative ${sizeClass} rounded-full bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center overflow-hidden ${className}`}
     >
       {showFallback ? (
+        // Only show fallback if no image or error
         <span className="text-white font-bold">
           {fallback.charAt(0).toUpperCase()}
         </span>
       ) : (
         <>
-          <Image
-            src={src}
-            alt={alt}
-            width={pixelSize}
-            height={pixelSize}
-            className="object-cover w-full h-full"
-            onError={() => {
-              setImageError(true)
-              setImageLoading(false)
-            }}
-            onLoad={() => setImageLoading(false)}
-          />
-          {imageLoading && (
+          {/* Show loading fallback until image loads */}
+          {!imageLoaded && (
             <div className="absolute inset-0 flex items-center justify-center bg-purple-600">
               <span className="text-white font-bold">
                 {fallback.charAt(0).toUpperCase()}
               </span>
             </div>
           )}
+          {/* Image - will cover fallback once loaded */}
+          <Image
+            src={src}
+            alt={alt}
+            width={pixelSize}
+            height={pixelSize}
+            className="object-cover w-full h-full relative z-10"
+            onError={() => {
+              setImageError(true)
+              setImageLoaded(false)
+            }}
+            onLoad={() => setImageLoaded(true)}
+          />
         </>
       )}
     </div>
