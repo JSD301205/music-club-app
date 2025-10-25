@@ -69,13 +69,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Safety timeout to ensure loading doesn't stay true forever (only if not initialized)
+    // Use longer timeout for production environments (Vercel has slower cold starts)
+    const timeoutDuration = process.env.NODE_ENV === 'production' ? 15000 : 10000
     const timeout = setTimeout(() => {
       if (!hasInitialized) {
         console.warn('Auth loading timeout - forcing loading to false')
         setLoading(false)
         setHasInitialized(true)
       }
-    }, 10000) // Increased to 10 seconds for slower connections
+    }, timeoutDuration)
 
     // Check if Supabase is configured
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -92,8 +94,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Get initial session and user
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session }, error: sessionError }) => {
       // console.log('AuthContext - Session loaded:', session ? 'exists' : 'none')
+      
+      // Handle session errors (like refresh_token_not_found)
+      if (sessionError) {
+        console.error('Error getting session:', sessionError)
+        // Clear invalid session
+        setSession(null)
+        setUser(null)
+        setProfile(null)
+        setLoading(false)
+        setHasInitialized(true)
+        clearTimeout(timeout)
+        return
+      }
+      
       setSession(session)
       
       if (session) {
@@ -102,6 +118,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (error) {
           console.error('Error getting user:', error)
+          // If token is invalid, clear the session
+          if (error.message?.includes('refresh_token') || error.message?.includes('Invalid')) {
+            await supabase.auth.signOut().catch(e => console.error('Error signing out:', e))
+          }
           setUser(null)
           setProfile(null)
           setLoading(false)
@@ -115,10 +135,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (user) {
           // Add timeout for fetchProfile to prevent hanging
+          // Use longer timeout in production due to cold starts
+          const profileTimeoutDuration = process.env.NODE_ENV === 'production' ? 8000 : 5000
           const profileTimeout = setTimeout(() => {
             console.warn('Profile fetch timeout - proceeding without profile')
             setProfile(null)
-          }, 5000)
+          }, profileTimeoutDuration)
           
           await fetchProfile(user.id).finally(() => clearTimeout(profileTimeout))
         }
@@ -162,10 +184,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (user) {
           // Add timeout for fetchProfile to prevent hanging
+          // Use longer timeout in production due to cold starts
+          const profileTimeoutDuration = process.env.NODE_ENV === 'production' ? 8000 : 5000
           const profileTimeout = setTimeout(() => {
             console.warn('Profile fetch timeout in auth change - proceeding without profile')
             setProfile(null)
-          }, 5000)
+          }, profileTimeoutDuration)
           
           fetchProfile(user.id).finally(() => clearTimeout(profileTimeout))
         }
