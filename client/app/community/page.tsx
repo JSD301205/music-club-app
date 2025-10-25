@@ -25,12 +25,19 @@ export default function CommunityPage() {
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/auth/login')
+      return
+    }
+    
+    // Only fetch members when auth is ready and user exists
+    if (!authLoading && user) {
+      fetchMembers()
     }
   }, [user, authLoading, router])
 
-  useEffect(() => {
-    fetchMembers()
-  }, [])
+  // Remove the separate fetchMembers useEffect since it's now called above
+  // useEffect(() => {
+  //   fetchMembers()
+  // }, [])
 
   useEffect(() => {
     filterMembers()
@@ -38,6 +45,7 @@ export default function CommunityPage() {
 
   const fetchMembers = async () => {
     try {
+      setLoading(true)
       // @ts-ignore - Supabase types
       const { data, error } = await supabase
         .from('profiles')
@@ -90,7 +98,7 @@ export default function CommunityPage() {
     setSelectedGenre('')
   }
 
-  if (authLoading || loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-gray-900 flex items-center justify-center">
         <div className="text-white text-2xl">Loading...</div>
@@ -99,6 +107,14 @@ export default function CommunityPage() {
   }
 
   if (!user) return null
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-gray-900 flex items-center justify-center">
+        <div className="text-white text-2xl">Loading community members...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-gray-900 py-20 px-4">
