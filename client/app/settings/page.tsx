@@ -7,10 +7,12 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { FaSave, FaUser, FaLock, FaTrash } from 'react-icons/fa'
 import { INSTRUMENTS, GENRES, BATCH_YEARS } from '@/app/constants/music'
+import ImageUpload from '@/app/components/ui/ImageUpload'
 
 export default function SettingsPage() {
   const { user, profile, refreshProfile, signOut, loading: authLoading } = useAuth()
   const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -26,6 +28,8 @@ export default function SettingsPage() {
     spotifyPlaylist: '',
     avatarUrl: '',
   })
+  
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -48,6 +52,37 @@ export default function SettingsPage() {
     }
   }, [profile])
 
+  const uploadAvatar = async (file: File): Promise<string> => {
+    if (!user) throw new Error('No user found')
+
+    // Delete old avatar if exists
+    if (formData.avatarUrl && formData.avatarUrl.includes('supabase')) {
+      const oldPath = formData.avatarUrl.split('/').pop()
+      if (oldPath) {
+        await supabase.storage.from('avatars').remove([`${user.id}/${oldPath}`])
+      }
+    }
+
+    // Upload new avatar
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Date.now()}.${fileExt}`
+    const filePath = `${user.id}/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      })
+
+    if (uploadError) throw uploadError
+
+    // Get public URL
+    const { data } = supabase.storage.from('avatars').getPublicUrl(filePath)
+
+    return data.publicUrl
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -56,6 +91,16 @@ export default function SettingsPage() {
 
     try {
       if (!user) throw new Error('No user found')
+
+      let avatarUrl = formData.avatarUrl
+
+      // Upload new avatar if file selected
+      if (avatarFile) {
+        setUploading(true)
+        avatarUrl = await uploadAvatar(avatarFile)
+        setAvatarFile(null)
+        setUploading(false)
+      }
 
       const { error } = await (supabase
         .from('profiles') as any)
@@ -67,7 +112,7 @@ export default function SettingsPage() {
           musical_interests: formData.musicalInterests,
           batch_year: formData.batchYear,
           spotify_playlist: formData.spotifyPlaylist || null,
-          avatar_url: formData.avatarUrl || null,
+          avatar_url: avatarUrl || null,
         })
         .eq('id', user.id)
 
@@ -80,7 +125,20 @@ export default function SettingsPage() {
       setError(error.message)
     } finally {
       setLoading(false)
+      setUploading(false)
     }
+  }
+
+  const handleImageChange = (file: File) => {
+    setAvatarFile(file)
+    // Create temporary preview URL
+    const previewUrl = URL.createObjectURL(file)
+    setFormData(prev => ({ ...prev, avatarUrl: previewUrl }))
+  }
+
+  const handleRemoveImage = () => {
+    setAvatarFile(null)
+    setFormData(prev => ({ ...prev, avatarUrl: '' }))
   }
 
   const toggleInstrument = (instrument: string) => {
@@ -151,52 +209,12 @@ export default function SettingsPage() {
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Profile Picture */}
-            <div>
-              <label className="block text-sm font-medium text-white mb-4">
-                Profile Picture
-              </label>
-              <div className="flex items-center gap-6">
-                {formData.avatarUrl ? (
-                  <div className="relative w-24 h-24 rounded-full border-4 border-purple-500 bg-purple-600 flex items-center justify-center overflow-hidden">
-                    <Image
-                      src={formData.avatarUrl}
-                      alt="Profile"
-                      width={100}
-                      height={100}
-                      className="rounded-full object-cover"
-                      onError={(e) => {
-                        // On error, hide image and show fallback
-                        e.currentTarget.style.display = 'none'
-                      }}
-                    />
-                    <span className="text-white text-3xl font-bold absolute">
-                      {formData.username.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="w-24 h-24 rounded-full bg-purple-600 flex items-center justify-center border-4 border-purple-500">
-                    <span className="text-white text-3xl font-bold">
-                      {formData.username.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
-                <div className="flex-1">
-                  <input
-                    type="url"
-                    value={formData.avatarUrl}
-                    onChange={(e) => setFormData(prev => ({ ...prev, avatarUrl: e.target.value }))}
-                    className="w-full px-4 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="https://example.com/image.jpg"
-                  />
-                  <p className="text-gray-400 text-sm mt-2">
-                    ⚠️ Use a <strong>direct image URL</strong> (ending in .jpg, .png, etc.)
-                  </p>
-                  <p className="text-gray-400 text-xs mt-1">
-                    For Unsplash: Right-click image → "Copy image address" (not page URL)
-                  </p>
-                </div>
-              </div>
-            </div>
+            <ImageUpload
+              currentImage={formData.avatarUrl}
+              onImageChange={handleImageChange}
+              onRemove={handleRemoveImage}
+              username={formData.username}
+            />
 
             {/* Basic Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -329,11 +347,11 @@ export default function SettingsPage() {
             <div className="flex justify-between items-center pt-6 border-t border-gray-700">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || uploading}
                 className="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
               >
                 <FaSave />
-                {loading ? 'Saving...' : 'Save Changes'}
+                {uploading ? 'Uploading image...' : loading ? 'Saving...' : 'Save Changes'}
               </button>
 
               <button
