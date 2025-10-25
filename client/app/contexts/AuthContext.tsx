@@ -21,6 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [hasInitialized, setHasInitialized] = useState(false)
   const supabase = createClient()
 
   const fetchProfile = async (userId: string) => {
@@ -60,13 +61,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    // Safety timeout to ensure loading doesn't stay true forever
+    // Safety timeout to ensure loading doesn't stay true forever (only if not initialized)
     const timeout = setTimeout(() => {
-      if (loading) {
+      if (!hasInitialized) {
         console.warn('Auth loading timeout - forcing loading to false')
         setLoading(false)
+        setHasInitialized(true)
       }
-    }, 3000)
+    }, 10000) // Increased to 10 seconds for slower connections
 
     // Check if Supabase is configured
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -75,6 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(null)
       setProfile(null)
       setLoading(false)
+      setHasInitialized(true)
       clearTimeout(timeout)
       return () => {
         clearTimeout(timeout)
@@ -95,6 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(null)
           setProfile(null)
           setLoading(false)
+          setHasInitialized(true)
           clearTimeout(timeout)
           return
         }
@@ -111,11 +115,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       setLoading(false)
+      setHasInitialized(true)
       clearTimeout(timeout)
     }).catch((error) => {
       console.error('Error getting session:', error)
       setUser(null)
       setLoading(false)
+      setHasInitialized(true)
       clearTimeout(timeout)
     })
 
