@@ -22,7 +22,7 @@ const getInstrumentIcon = (instrumentName: string) => {
 }
 
 export default function SetupProfilePage() {
-  const { user, profile, refreshProfile } = useAuth()
+  const { user, profile, loading: authLoading, refreshProfile } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -37,10 +37,13 @@ export default function SetupProfilePage() {
   })
 
   useEffect(() => {
+    // Don't check profile completion while auth is still loading
+    if (authLoading) return
+    
     if (profile?.is_profile_complete) {
       router.push('/community')
     }
-  }, [profile, router])
+  }, [profile, authLoading, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -105,6 +108,15 @@ export default function SetupProfilePage() {
         ? prev.musicalInterests.filter(g => g !== genre)
         : [...prev.musicalInterests, genre]
     }))
+  }
+
+  // Show loading while auth is initializing
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    )
   }
 
   if (!user) {

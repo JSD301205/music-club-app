@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { createClient } from '../lib/supabase-client'
 import { Profile } from '../types/database.types'
@@ -21,9 +21,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [initialized, setInitialized] = useState(false)
   const supabase = createClient()
+  const fetchingProfile = useRef(false)
 
   const fetchProfile = async (userId: string): Promise<void> => {
+    // Prevent concurrent profile fetches
+    if (fetchingProfile.current) return
+    
+    fetchingProfile.current = true
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -41,6 +47,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Unexpected error fetching profile:', error)
       setProfile(null)
+    } finally {
+      fetchingProfile.current = false
     }
   }
 
@@ -51,12 +59,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    let mounted = true
+
     // Initialize auth state
     const initAuth = async () => {
       try {
         // Get current session
         const { data: { session } } = await supabase.auth.getSession()
         
+        if (!mounted) return
+
         setSession(session)
         setUser(session?.user ?? null)
 
@@ -67,7 +79,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         console.error('Error initializing auth:', error)
       } finally {
-        setLoading(false)
+        if (mounted) {
+          setLoading(false)
+          setInitialized(true)
+        }
       }
     }
 
@@ -76,7 +91,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted || !initialized) return
+
         console.log('Auth state changed:', event)
+        
+        // Set loading while fetching profile for signed in users
+        if (session?.user && event === 'SIGNED_IN') {
+          setLoading(true)
+        }
         
         setSession(session)
         setUser(session?.user ?? null)
@@ -86,10 +108,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           setProfile(null)
         }
+
+        // Done loading
+        if (mounted) {
+          setLoading(false)
+        }
       }
     )
 
     return () => {
+      mounted = false
       subscription.unsubscribe()
     }
   }, [])
