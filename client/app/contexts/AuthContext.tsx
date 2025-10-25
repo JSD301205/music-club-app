@@ -97,34 +97,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session and user
     const initAuth = async () => {
       try {
-        // Wrap getSession with timeout to prevent indefinite hanging
-        const sessionPromise = supabase.auth.getSession()
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('getSession timeout')), 10000)
-        )
+        // Robust getSession with retries and exponential backoff to handle intermittent network/cold-starts
+        const timeoutPromise = (ms: number) => new Promise((_, reject) => setTimeout(() => reject(new Error('getSession timeout')), ms))
 
-        // Try getSession with a timeout. If it fails, we'll retry once, then fall back to localStorage.
-        let raceResult: any = await Promise.race([sessionPromise, timeoutPromise]).catch((err) => {
-          console.error('Session fetch failed or timed out:', err)
-          return { data: { session: null }, error: err }
-        })
+        let raceResult: any = null
+        let session: any = null
+        let sessionError: any = null
 
-        // If no session and no fatal sessionError, attempt one retry with longer timeout
-        if ((!raceResult || !raceResult.data?.session) && !(raceResult && raceResult.error)) {
+        const attempts = [10000, 12000, 15000] // timeouts per attempt (ms)
+        for (let i = 0; i < attempts.length; i++) {
           try {
-            const retryPromise = supabase.auth.getSession()
-            const retryTimeout = new Promise((_, reject) => setTimeout(() => reject(new Error('getSession retry timeout')), 15000))
-            raceResult = await Promise.race([retryPromise, retryTimeout]).catch((err) => {
-              console.error('Session retry failed or timed out:', err)
-              return { data: { session: null }, error: err }
-            })
-          } catch (e) {
-            // swallow, handled below
+            const p = supabase.auth.getSession()
+            raceResult = await Promise.race([p, timeoutPromise(attempts[i])]).catch((err) => ({ data: { session: null }, error: err }))
+            if (raceResult && raceResult.data && raceResult.data.session) {
+              session = raceResult.data.session
+              sessionError = raceResult.error ?? null
+              break
+            } else {
+              // record error and retry after a short backoff
+              sessionError = raceResult?.error ?? new Error('no session')
+              console.warn(`getSession attempt ${i + 1} failed:`, sessionError)
+              // small backoff before next attempt
+              if (i < attempts.length - 1) await new Promise(r => setTimeout(r, 500 * (i + 1)))
+            }
+          } catch (err) {
+            sessionError = err
+            console.error(`getSession attempt ${i + 1} error:`, err)
+            if (i < attempts.length - 1) await new Promise(r => setTimeout(r, 500 * (i + 1)))
           }
         }
 
-        let session = raceResult?.data?.session ?? null
-        const sessionError = raceResult?.error ?? null
+        // Fallback: try reading a cached session from localStorage if no session obtained
 
         // If still no session, try reading a cached session from localStorage as a last-resort fallback
         if (!session && typeof window !== 'undefined') {
