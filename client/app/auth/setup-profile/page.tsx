@@ -41,7 +41,10 @@ export default function SetupProfilePage() {
     if (authLoading) return
     
     if (profile?.is_profile_complete) {
-      router.push('/community')
+      // Use setTimeout to avoid updating Router during render
+      setTimeout(() => {
+        router.push('/community')
+      }, 0)
     }
   }, [profile, authLoading, router])
 

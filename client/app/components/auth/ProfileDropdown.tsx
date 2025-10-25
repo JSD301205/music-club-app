@@ -5,7 +5,7 @@ import { useAuth } from '@/app/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FaUser, FaCog, FaSignOutAlt, FaEnvelope } from 'react-icons/fa'
+import { FaUser, FaCog, FaSignOutAlt, FaEnvelope, FaUserPlus } from 'react-icons/fa'
 import { useUnreadCount } from '@/app/hooks/useChat'
 
 export default function ProfileDropdown() {
@@ -114,7 +114,19 @@ export default function ProfileDropdown() {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-56 bg-gray-900/95 backdrop-blur-lg rounded-lg shadow-2xl border border-gray-700 py-2 z-50">
           <div className="px-4 py-3 border-b border-gray-700">
-            <p className="text-sm font-semibold text-white">{profile.full_name || profile.username}</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-white">{profile.full_name || profile.username}</p>
+              <span
+                className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                  profile.role === 'member'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-pink-600 text-white'
+                }`}
+                title={profile.role === 'member' ? 'Musician Member' : 'Music Enthusiast'}
+              >
+                {profile.role === 'member' ? '🎸' : '❤️'}
+              </span>
+            </div>
             <p className="text-xs text-gray-400 truncate">{user.email}</p>
           </div>
 
@@ -139,6 +151,15 @@ export default function ProfileDropdown() {
                 {unreadCount}
               </span>
             )}
+          </Link>
+
+          <Link
+            href="/community/message-requests"
+            className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+            onClick={() => setIsOpen(false)}
+          >
+            <FaUserPlus className="mr-3" />
+            Message Requests
           </Link>
 
           <Link

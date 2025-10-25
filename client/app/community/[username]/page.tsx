@@ -54,9 +54,22 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
               )}
 
               <div className="flex-1 mt-16 md:mt-20">
-                <h1 className="text-4xl font-bold text-white mb-2">
-                  {userProfile.full_name || userProfile.username}
-                </h1>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-4xl font-bold text-white">
+                    {userProfile.full_name || userProfile.username}
+                  </h1>
+                  {/* Role Badge */}
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      userProfile.role === 'member'
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-pink-600 text-white'
+                    }`}
+                    title={userProfile.role === 'member' ? 'Musician Member' : 'Music Enthusiast'}
+                  >
+                    {userProfile.role === 'member' ? '🎸 Member' : '❤️ Enthusiast'}
+                  </span>
+                </div>
                 <p className="text-gray-300 text-lg mb-4">@{userProfile.username}</p>
 
                 <div className="flex flex-wrap gap-4 items-center">

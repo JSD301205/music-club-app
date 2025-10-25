@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { FiPlus, FiSearch, FiFilter, FiX } from 'react-icons/fi';
 import { useAuth } from '@/app/contexts/AuthContext';
 import JamPostCard from '@/app/components/jam-board/JamPostCard';
@@ -18,7 +19,7 @@ import { INSTRUMENTS, GENRES } from '@/app/constants/music';
 
 export default function JamBoardPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   const [posts, setPosts] = useState<JamPostWithAuthor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,7 +111,7 @@ export default function JamBoardPage() {
               </p>
             </div>
 
-            {user && (
+            {user && profile?.role === 'member' && (
               <button
                 onClick={() => setShowCreateModal(true)}
                 className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg"
@@ -118,6 +119,17 @@ export default function JamBoardPage() {
                 <FiPlus />
                 Create Post
               </button>
+            )}
+            
+            {user && profile?.role === 'enthusiast' && (
+              <div className="px-4 py-3 bg-pink-600/20 border border-pink-500 rounded-lg">
+                <p className="text-pink-200 text-sm font-medium">
+                  ❤️ Enthusiasts can view posts but cannot create them
+                </p>
+                <Link href="/settings" className="text-pink-300 hover:text-pink-200 text-xs underline">
+                  Upgrade to Member in Settings
+                </Link>
+              </div>
             )}
           </motion.div>
         </div>

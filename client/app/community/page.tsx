@@ -61,6 +61,7 @@ export default function CommunityPage() {
         .from('profiles')
         .select('*')
         .eq('is_profile_complete', true)
+        .eq('is_visible_in_community', true)  // Only show visible profiles
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -231,9 +232,22 @@ export default function CommunityPage() {
                   />
 
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-white mb-1">
-                      {member.full_name || member.username}
-                    </h3>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-xl font-bold text-white">
+                        {member.full_name || member.username}
+                      </h3>
+                      {/* Role Badge */}
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          member.role === 'member'
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-pink-600 text-white'
+                        }`}
+                        title={member.role === 'member' ? 'Musician Member' : 'Music Enthusiast'}
+                      >
+                        {member.role === 'member' ? '🎸' : '❤️'}
+                      </span>
+                    </div>
                     <p className="text-gray-300 text-sm">@{member.username}</p>
                     {member.batch_year && (
                       <p className="text-purple-400 text-sm">Batch {member.batch_year}</p>

@@ -5,9 +5,10 @@ import { useAuth } from '@/app/contexts/AuthContext'
 import { createClient } from '@/app/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { FaSave, FaUser, FaLock, FaTrash } from 'react-icons/fa'
+import { FaSave, FaUser, FaLock, FaTrash, FaEye, FaEyeSlash, FaEnvelope, FaShieldAlt } from 'react-icons/fa'
 import { INSTRUMENTS, GENRES, BATCH_YEARS } from '@/app/constants/music'
 import ImageUpload from '@/app/components/ui/ImageUpload'
+import { UserRole, MessagePermission } from '@/app/types/database.types'
 
 export default function SettingsPage() {
   const { user, profile, refreshProfile, signOut, loading: authLoading } = useAuth()
@@ -27,6 +28,9 @@ export default function SettingsPage() {
     batchYear: new Date().getFullYear(),
     spotifyPlaylist: '',
     avatarUrl: '',
+    role: 'member' as UserRole,
+    isVisibleInCommunity: true,
+    allowMessagesFrom: 'members_only' as MessagePermission,
   })
   
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
@@ -48,6 +52,9 @@ export default function SettingsPage() {
         batchYear: profile.batch_year || new Date().getFullYear(),
         spotifyPlaylist: profile.spotify_playlist || '',
         avatarUrl: profile.avatar_url || '',
+        role: profile.role || 'member',
+        isVisibleInCommunity: profile.is_visible_in_community ?? true,
+        allowMessagesFrom: profile.allow_messages_from || 'members_only',
       })
     }
   }, [profile])
@@ -113,6 +120,9 @@ export default function SettingsPage() {
           batch_year: formData.batchYear,
           spotify_playlist: formData.spotifyPlaylist || null,
           avatar_url: avatarUrl || null,
+          role: formData.role,
+          is_visible_in_community: formData.isVisibleInCommunity,
+          allow_messages_from: formData.allowMessagesFrom,
         })
         .eq('id', user.id)
 
@@ -341,6 +351,125 @@ export default function SettingsPage() {
                 className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="https://open.spotify.com/playlist/..."
               />
+            </div>
+
+            {/* Privacy & Role Settings */}
+            <div className="border-t border-gray-700 pt-8">
+              <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                <FaShieldAlt />
+                Privacy & Role Settings
+              </h2>
+
+              {/* Current Role Display */}
+              <div className="mb-6 p-4 bg-purple-600/20 border border-purple-500 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white font-medium">Your Role</p>
+                    <p className="text-gray-300 text-sm">
+                      You are currently a <span className="font-bold">{formData.role === 'member' ? '🎸 Member' : '❤️ Enthusiast'}</span>
+                    </p>
+                  </div>
+                  {formData.role === 'enthusiast' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm('Are you a musician? Upgrading to Member will make you visible in the community and allow you to post on the jam board.')) {
+                          setFormData(prev => ({ ...prev, role: 'member', isVisibleInCommunity: true }))
+                        }
+                      }}
+                      className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all"
+                    >
+                      Upgrade to Member
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Community Visibility */}
+              <div className="mb-6">
+                <label className="flex items-center justify-between p-4 bg-gray-800/50 border border-gray-600 rounded-lg cursor-pointer hover:border-purple-500 transition-all">
+                  <div className="flex items-center gap-3">
+                    {formData.isVisibleInCommunity ? (
+                      <FaEye className="text-green-400 text-xl" />
+                    ) : (
+                      <FaEyeSlash className="text-gray-400 text-xl" />
+                    )}
+                    <div>
+                      <p className="text-white font-medium">Visible in Community</p>
+                      <p className="text-gray-400 text-sm">
+                        {formData.isVisibleInCommunity 
+                          ? 'Your profile appears in the community directory'
+                          : 'Your profile is hidden from the community directory'}
+                      </p>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={formData.isVisibleInCommunity}
+                    onChange={(e) => setFormData(prev => ({ ...prev, isVisibleInCommunity: e.target.checked }))}
+                    className="w-6 h-6 text-purple-600 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
+                  />
+                </label>
+                {formData.role === 'enthusiast' && !formData.isVisibleInCommunity && (
+                  <p className="text-gray-400 text-xs mt-2 ml-4">
+                    💡 As an enthusiast, hiding your profile is recommended
+                  </p>
+                )}
+              </div>
+
+              {/* Message Permissions */}
+              <div>
+                <label className="block text-sm font-medium text-white mb-3 flex items-center gap-2">
+                  <FaEnvelope />
+                  Who can message you?
+                </label>
+                <div className="space-y-3">
+                  <label className="flex items-center p-4 bg-gray-800/50 border border-gray-600 rounded-lg cursor-pointer hover:border-purple-500 transition-all">
+                    <input
+                      type="radio"
+                      name="messagePermission"
+                      value="everyone"
+                      checked={formData.allowMessagesFrom === 'everyone'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, allowMessagesFrom: e.target.value as MessagePermission }))}
+                      className="w-5 h-5 text-purple-600 border-gray-600 focus:ring-purple-500 focus:ring-2"
+                    />
+                    <div className="ml-3">
+                      <p className="text-white font-medium">Everyone</p>
+                      <p className="text-gray-400 text-sm">All users can send you messages</p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center p-4 bg-gray-800/50 border border-gray-600 rounded-lg cursor-pointer hover:border-purple-500 transition-all">
+                    <input
+                      type="radio"
+                      name="messagePermission"
+                      value="members_only"
+                      checked={formData.allowMessagesFrom === 'members_only'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, allowMessagesFrom: e.target.value as MessagePermission }))}
+                      className="w-5 h-5 text-purple-600 border-gray-600 focus:ring-purple-500 focus:ring-2"
+                    />
+                    <div className="ml-3">
+                      <p className="text-white font-medium">Members Only (Recommended)</p>
+                      <p className="text-gray-400 text-sm">Only verified musicians can message you directly</p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center p-4 bg-gray-800/50 border border-gray-600 rounded-lg cursor-pointer hover:border-purple-500 transition-all">
+                    <input
+                      type="radio"
+                      name="messagePermission"
+                      value="no_one"
+                      checked={formData.allowMessagesFrom === 'no_one'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, allowMessagesFrom: e.target.value as MessagePermission }))}
+                      className="w-5 h-5 text-purple-600 border-gray-600 focus:ring-purple-500 focus:ring-2"
+                    />
+                    <div className="ml-3">
+                      <p className="text-white font-medium">No One</p>
+                      <p className="text-gray-400 text-sm">Disable all incoming messages</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
             </div>
 
             {/* Save Button */}

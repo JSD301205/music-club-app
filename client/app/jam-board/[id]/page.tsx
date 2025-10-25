@@ -304,8 +304,8 @@ export default function JamPostDetailPage() {
             Responses ({responses.length})
           </h2>
 
-          {/* Response Form (if not author and not responded) */}
-          {user && !isAuthor && !hasResponded && post.status === 'open' && (
+          {/* Response Form (if not author and not responded and member) */}
+          {user && profile?.role === 'member' && !isAuthor && !hasResponded && post.status === 'open' && (
             <form onSubmit={handleRespond} className="mb-6">
               <textarea
                 value={responseMessage}
@@ -323,6 +323,16 @@ export default function JamPostDetailPage() {
                 {responding ? 'Sending...' : 'Send Response'}
               </button>
             </form>
+          )}
+
+          {/* Enthusiast Cannot Respond Message */}
+          {user && profile?.role === 'enthusiast' && !isAuthor && (
+            <div className="bg-pink-600/20 border border-pink-500 text-pink-200 px-4 py-3 rounded-lg mb-6">
+              <p className="font-semibold">❤️ Enthusiasts can view but cannot respond to jam posts</p>
+              <Link href="/settings" className="text-pink-300 hover:text-pink-200 text-sm underline">
+                Upgrade to Member in Settings
+              </Link>
+            </div>
           )}
 
           {/* Already Responded Message */}
