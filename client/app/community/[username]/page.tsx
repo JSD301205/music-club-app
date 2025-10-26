@@ -162,22 +162,25 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
               </div>
             )}
 
-            {/* Spotify Playlist */}
-            {userProfile.spotify_playlist && (
+            {/* Social Links */}
+            {Array.isArray(userProfile.social_links) && userProfile.social_links.length > 0 && (
               <div className="mb-8">
-                <div className="flex items-center gap-3 mb-4">
-                  <FaSpotify className="text-green-400 text-2xl" />
-                  <h2 className="text-2xl font-bold text-white">Spotify Playlist</h2>
+                <h2 className="text-2xl font-bold text-white mb-4">Social Links</h2>
+                <div className="flex flex-wrap gap-3">
+                  {userProfile.social_links.map((link: any, idx: number) => (
+                    link && (link.url || link.title) ? (
+                      <a
+                        key={idx}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all"
+                      >
+                        {link.title ? link.title : 'Link'}
+                      </a>
+                    ) : null
+                  ))}
                 </div>
-                <a
-                  href={userProfile.spotify_playlist}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-all"
-                >
-                  <FaSpotify />
-                  Listen on Spotify
-                </a>
               </div>
             )}
           </div>
