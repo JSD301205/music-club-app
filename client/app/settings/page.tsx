@@ -50,7 +50,7 @@ export default function SettingsPage() {
         instruments: (profile.instruments as string[]) || [],
         musicalInterests: (profile.musical_interests as string[]) || [],
         batchYear: profile.batch_year || new Date().getFullYear(),
-        socialLinks: (profile.social_links as string[] && profile.social_links.length > 0) ? profile.social_links : [''],
+        socialLinks: Array.isArray((profile as any).social_links) && (profile as any).social_links.length > 0 ? (profile as any).social_links : [''],
         avatarUrl: profile.avatar_url || '',
         role: profile.role || 'member',
         isVisibleInCommunity: profile.is_visible_in_community ?? true,
