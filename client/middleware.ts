@@ -102,23 +102,14 @@ export async function middleware(request: NextRequest) {
     
     // If user is logged in and trying to access protected routes, check profile completion
     if (session?.user && isProtectedRoute) {
-      // Check if profile completion flag exists in user metadata
-      const isProfileComplete = session.user.user_metadata?.is_profile_complete
-      
-      // If not in metadata, fetch from database
-      if (isProfileComplete === undefined) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('is_profile_complete')
-          .eq('id', session.user.id)
-          .single()
-        
-        // If no profile or profile not complete, redirect to setup
-        if (!profile || !profile.is_profile_complete) {
-          url.pathname = '/auth/setup-profile'
-          return NextResponse.redirect(url)
-        }
-      } else if (!isProfileComplete) {
+      // Always check is_profile_complete from database
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_profile_complete')
+        .eq('id', session.user.id)
+        .single()
+      // If no profile or profile not complete, redirect to setup
+      if (!profile || !profile.is_profile_complete) {
         url.pathname = '/auth/setup-profile'
         return NextResponse.redirect(url)
       }
