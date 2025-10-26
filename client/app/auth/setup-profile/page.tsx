@@ -282,14 +282,18 @@ export default function SetupProfilePage() {
               <label className="block text-sm font-medium text-white mb-2">
                 Social Links (Optional)
               </label>
-              {formData.socialLinks.map((link, idx) => (
+              {Array.isArray(formData.socialLinks) && formData.socialLinks.map((link, idx) => (
                 <div key={idx} className="flex gap-2 mb-2">
                   <input
                     type="text"
-                    value={link.title}
+                    value={typeof link === 'object' && link.title ? link.title : ''}
                     onChange={e => {
                       const newLinks = [...formData.socialLinks]
-                      newLinks[idx].title = e.target.value
+                      if (typeof newLinks[idx] === 'object') {
+                        newLinks[idx].title = e.target.value
+                      } else {
+                        newLinks[idx] = { title: e.target.value, url: '' }
+                      }
                       setFormData(prev => ({ ...prev, socialLinks: newLinks }))
                     }}
                     className="w-1/3 px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -297,10 +301,14 @@ export default function SetupProfilePage() {
                   />
                   <input
                     type="url"
-                    value={link.url}
+                    value={typeof link === 'object' && link.url ? link.url : ''}
                     onChange={e => {
                       const newLinks = [...formData.socialLinks]
-                      newLinks[idx].url = e.target.value
+                      if (typeof newLinks[idx] === 'object') {
+                        newLinks[idx].url = e.target.value
+                      } else {
+                        newLinks[idx] = { title: '', url: e.target.value }
+                      }
                       setFormData(prev => ({ ...prev, socialLinks: newLinks }))
                     }}
                     className="w-2/3 px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
