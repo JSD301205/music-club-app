@@ -58,6 +58,11 @@ export default function SetupProfilePage() {
         router.push('/community')
       }, 200)
     }
+    // Prevent enthusiasts from accessing community if profile is not complete
+    if (user && profile?.role === 'enthusiast' && !profile?.is_profile_complete) {
+      // Stay on setup-profile, do not redirect
+      // Optionally, could show a message or force refresh
+    }
     
     return () => {
       if (timer) clearTimeout(timer)
