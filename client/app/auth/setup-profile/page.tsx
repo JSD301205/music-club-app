@@ -36,6 +36,9 @@ export default function SetupProfilePage() {
     spotifyPlaylist: '',
   })
 
+  // Get user role from profile
+  const userRole = profile?.role
+
   useEffect(() => {
     // Don't check anything while auth is still loading
     if (authLoading) return
@@ -273,7 +276,12 @@ export default function SetupProfilePage() {
               </button>
               <button
                 type="submit"
-                disabled={loading || formData.instruments.length === 0 || formData.musicalInterests.length === 0}
+                disabled={
+                  loading ||
+                  formData.musicalInterests.length === 0 ||
+                  (!formData.bio || !formData.batchYear) ||
+                  (userRole !== 'enthusiast' && formData.instruments.length === 0)
+                }
                 className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 {loading ? 'Saving...' : 'Complete Profile'}
