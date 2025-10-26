@@ -104,6 +104,10 @@ export default function SetupProfilePage() {
 
       await refreshProfile()
       router.push('/community')
+      // Refresh the page after rerouting to /community
+      setTimeout(() => {
+        window.location.reload()
+      }, 100)
     } catch (error: any) {
       setError(error.message || 'An error occurred while updating your profile')
     } finally {
