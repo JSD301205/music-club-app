@@ -19,7 +19,7 @@ export default function RoleSelector({ selectedRole, onRoleChange }: RoleSelecto
       icon: FaGuitar,
       title: 'Member',
       description: 'I play instruments or sing',
-      tooltip: 'Music Club Members are musicians who play instruments, sing, or actively create music. You\'ll be visible in the community directory and can connect with fellow musicians.',
+      tooltip: 'Members are Crew, i.e. Musicians who play instruments, sing, or actively create music. You\'ll be visible in the community directory and can connect with fellow musicians.',
       features: [
         'Visible in community',
         'Message other members',
