@@ -75,10 +75,10 @@ const HeroSection = () => {
               Upcoming Events
             </Link>
             <Link 
-              href="#contact" 
+              href="auth/login" 
               className="btn-primary bg-secondary-600 hover:bg-secondary-700 text-white px-8 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
             >
-              Join the Club
+              Join the Community
             </Link>
           </motion.div>
         </motion.div>
