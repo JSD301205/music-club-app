@@ -72,6 +72,10 @@ export default function LoginForm() {
         // Profile is complete, go to community
         router.push('/community')
         router.refresh()
+        // Reload to ensure auth state is synced
+        setTimeout(() => {
+          window.location.reload()
+        }, 500)
       }
     } catch (error: any) {
       setError(error.message || 'Invalid email or password')
