@@ -63,11 +63,11 @@ export default function LoginForm() {
             // Delay to ensure auth state is synced and give time for refresh message to appear
             setTimeout(() => {
               router.push('/auth/setup-profile')
-              // Refresh the page only once after redirecting
+              // Refresh the page only once after redirecting (reduced delay)
               setTimeout(() => {
                 window.location.reload()
-              }, 500)
-            }, 2000)
+              }, 100)
+            }, 500)
             return
           }
         }
