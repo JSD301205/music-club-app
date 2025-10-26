@@ -164,7 +164,12 @@ export default function SetupProfilePage() {
               Tell us about your musical journey to connect with fellow musicians
             </p>
             <p className="text-gray-400 text-sm mt-2">
-              Complete your profile to be visible in the community and connect with other musicians
+              <span className="text-red-400">*</span> indicates mandatory fields.<br />
+              {userRole === 'enthusiast' ? (
+                <span className="text-xs text-blue-300">For enthusiasts, only Bio, Favorite Genres, and Batch Year are required.</span>
+              ) : (
+                <span className="text-xs text-purple-300">For members, Bio, Instruments, Favorite Genres, and Batch Year are required.</span>
+              )}
             </p>
           </div>
 
@@ -178,7 +183,7 @@ export default function SetupProfilePage() {
             {/* Bio */}
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Bio
+                Bio <span className="text-red-400">*</span>
               </label>
               <textarea
                 value={formData.bio}
@@ -193,7 +198,7 @@ export default function SetupProfilePage() {
             {/* Instruments */}
             <div>
               <label className="block text-sm font-medium text-white mb-4">
-                Instruments You Play
+                Instruments You Play{userRole !== 'enthusiast' && <span className="text-red-400">*</span>}
               </label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {INSTRUMENTS.map((instrument) => {
@@ -221,7 +226,7 @@ export default function SetupProfilePage() {
             {/* Musical Interests */}
             <div>
               <label className="block text-sm font-medium text-white mb-4">
-                Favorite Genres
+                Favorite Genres <span className="text-red-400">*</span>
               </label>
               <div className="flex flex-wrap gap-2">
                 {GENRES.map((genre) => {
@@ -247,7 +252,7 @@ export default function SetupProfilePage() {
             {/* Batch Year */}
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Batch Year
+                Batch Year <span className="text-red-400">*</span>
               </label>
               <select
                 value={formData.batchYear}
