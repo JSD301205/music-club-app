@@ -329,8 +329,19 @@ export default function SettingsPage() {
 
             {/* Batch Year */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">
+              <label className="block text-sm font-medium text-white mb-2 flex items-center gap-2">
                 Batch Year
+                <span className="relative group">
+                  <span className="inline-flex items-center cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 hover:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 16v-4m0-4h.01" />
+                    </svg>
+                  </span>
+                  <span className="absolute left-6 top-1 z-10 w-48 bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-300 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    Your batch year is the year you joined the institute (e.g., 2022). This helps us connect you with your peers and alumni.
+                  </span>
+                </span>
               </label>
               <select
                 value={formData.batchYear}

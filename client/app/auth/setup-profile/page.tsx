@@ -261,7 +261,7 @@ export default function SetupProfilePage() {
                     </svg>
                   </span>
                   <span className="absolute left-6 top-1 z-10 w-48 bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-300 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                    Your batch year is the year you joined the institute (e.g., YYYY from your roll number). This helps us connect you with your peers and alumni.
+                    Your batch year is the year you joined the institute (e.g., 2022). This helps us connect you with your peers and alumni.
                   </span>
                 </span>
               </label>
