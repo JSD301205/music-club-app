@@ -26,7 +26,7 @@ export default function SettingsPage() {
     instruments: [] as string[],
     musicalInterests: [] as string[],
     batchYear: new Date().getFullYear(),
-    socialLinks: [''],
+    socialLinks: [{ title: '', url: '' }],
     avatarUrl: '',
     role: 'member' as UserRole,
     isVisibleInCommunity: true,
@@ -50,7 +50,13 @@ export default function SettingsPage() {
         instruments: (profile.instruments as string[]) || [],
         musicalInterests: (profile.musical_interests as string[]) || [],
         batchYear: profile.batch_year || new Date().getFullYear(),
-        socialLinks: Array.isArray((profile as any).social_links) && (profile as any).social_links.length > 0 ? (profile as any).social_links : [''],
+        socialLinks: Array.isArray((profile as any).social_links) && (profile as any).social_links.length > 0
+          ? (profile as any).social_links.map((link: any) =>
+              typeof link === 'object' && link !== null
+                ? { title: link.title || '', url: link.url || '' }
+                : { title: '', url: link || '' }
+            )
+          : [{ title: '', url: '' }],
         avatarUrl: profile.avatar_url || '',
         role: profile.role || 'member',
         isVisibleInCommunity: profile.is_visible_in_community ?? true,
@@ -118,7 +124,7 @@ export default function SettingsPage() {
           instruments: formData.instruments,
           musical_interests: formData.musicalInterests,
           batch_year: formData.batchYear,
-          social_links: formData.socialLinks.filter(link => link.trim() !== ''),
+          social_links: formData.socialLinks.filter(link => link.title.trim() !== '' || link.url.trim() !== ''),
           avatar_url: avatarUrl || null,
           role: formData.role,
           is_visible_in_community: formData.isVisibleInCommunity,
@@ -359,17 +365,36 @@ export default function SettingsPage() {
               <label className="block text-sm font-medium text-white mb-2">
                 Social Links (Optional)
               </label>
-              {formData.socialLinks.map((link, idx) => (
+              {Array.isArray(formData.socialLinks) && formData.socialLinks.map((link, idx) => (
                 <div key={idx} className="flex gap-2 mb-2">
                   <input
-                    type="url"
-                    value={link}
+                    type="text"
+                    value={typeof link === 'object' && link.title ? link.title : ''}
                     onChange={e => {
                       const newLinks = [...formData.socialLinks]
-                      newLinks[idx] = e.target.value
+                      if (typeof newLinks[idx] === 'object') {
+                        newLinks[idx].title = e.target.value
+                      } else {
+                        newLinks[idx] = { title: e.target.value, url: '' }
+                      }
                       setFormData(prev => ({ ...prev, socialLinks: newLinks }))
                     }}
-                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-1/3 px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Title (e.g. Spotify, Instagram)"
+                  />
+                  <input
+                    type="url"
+                    value={typeof link === 'object' && link.url ? link.url : ''}
+                    onChange={e => {
+                      const newLinks = [...formData.socialLinks]
+                      if (typeof newLinks[idx] === 'object') {
+                        newLinks[idx].url = e.target.value
+                      } else {
+                        newLinks[idx] = { title: '', url: e.target.value }
+                      }
+                      setFormData(prev => ({ ...prev, socialLinks: newLinks }))
+                    }}
+                    className="w-2/3 px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="https://your-social-link.com"
                   />
                   <button
@@ -385,7 +410,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium mt-2"
-                onClick={() => setFormData(prev => ({ ...prev, socialLinks: [...prev.socialLinks, ''] }))}
+                onClick={() => setFormData(prev => ({ ...prev, socialLinks: [...prev.socialLinks, { title: '', url: '' }] }))}
               >
                 Add Link
               </button>
