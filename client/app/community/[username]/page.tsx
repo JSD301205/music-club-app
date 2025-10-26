@@ -65,6 +65,8 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
                         ? 'bg-orange-600 text-white'
                         : userProfile.role === 'member'
                         ? 'bg-purple-600 text-white'
+                        : userProfile.role === 'alumni'
+                        ? 'bg-yellow-500 text-white'
                         : 'bg-pink-600 text-white'
                     }`}
                     title={
@@ -72,6 +74,8 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
                         ? 'Admin'
                         : userProfile.role === 'member'
                         ? 'Musician Member'
+                        : userProfile.role === 'alumni'
+                        ? 'Alumni (Graduated)'
                         : 'Music Enthusiast'
                     }
                   >
@@ -79,6 +83,8 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
                       ? '🛡️ Admin'
                       : userProfile.role === 'member'
                       ? '🎸 Member'
+                      : userProfile.role === 'alumni'
+                      ? '🎓 Alumni'
                       : '❤️ Enthusiast'}
                   </span>
                 </div>
