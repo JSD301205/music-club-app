@@ -33,6 +33,10 @@ export default function AdminPage() {
   const handleLogout = async () => {
     await signOut();
     setIsAuthenticated(false);
+    // Reload to ensure auth state is cleared
+    setTimeout(() => {
+      window.location.reload()
+    }, 600)
   };
 
   // Gallery form state

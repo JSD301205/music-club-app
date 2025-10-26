@@ -181,6 +181,10 @@ export default function SettingsPage() {
       // Sign out
       await signOut()
       router.push('/')
+      // Reload to ensure auth state is cleared
+      setTimeout(() => {
+        window.location.reload()
+      }, 600)
     } catch (error: any) {
       setError(error.message)
     }

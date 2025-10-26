@@ -32,6 +32,10 @@ export default function ProfileDropdown() {
     setTimeout(() => {
       router.push('/')
       router.refresh()
+      // Reload to ensure auth state is cleared
+      setTimeout(() => {
+        window.location.reload()
+      }, 600)
     }, 100)
   }
 
