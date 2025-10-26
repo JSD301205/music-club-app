@@ -99,15 +99,19 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
               </div>
 
               {/* Message Button */}
-              <div className="mt-16 md:mt-20">
-                <Link
-                  href={`/community/messages?user=${userProfile.username}`}
-                  className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-all"
-                >
-                  <FaEnvelope />
-                  Send Message
-                </Link>
-              </div>
+              {/* Hide Send Message button if viewing own profile */}
+              {typeof window !== 'undefined' &&
+                userProfile.username !== (typeof window !== 'undefined' ? (window.localStorage.getItem('username') || '') : '') && (
+                  <div className="mt-16 md:mt-20">
+                    <Link
+                      href={`/community/messages?user=${userProfile.username}`}
+                      className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-all"
+                    >
+                      <FaEnvelope />
+                      Send Message
+                    </Link>
+                  </div>
+                )}
             </div>
 
             {/* Bio */}
