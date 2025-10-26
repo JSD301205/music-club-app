@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/app/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -10,14 +10,30 @@ export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [needsProfileSetup, setNeedsProfileSetup] = useState(false)
+  const [showRefreshMessage, setShowRefreshMessage] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
+
+  // Show refresh message after 3 seconds if profile setup is needed and still loading
+  useEffect(() => {
+    if (loading && needsProfileSetup) {
+      const timer = setTimeout(() => {
+        setShowRefreshMessage(true)
+      }, 3000)
+      return () => clearTimeout(timer)
+    } else {
+      setShowRefreshMessage(false)
+    }
+  }, [loading, needsProfileSetup])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
+    setNeedsProfileSetup(false)
+    setShowRefreshMessage(false)
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -42,6 +58,7 @@ export default function LoginForm() {
 
           const profile = profileData as any
           if (!profile || !profile.is_profile_complete) {
+            setNeedsProfileSetup(true)
             router.refresh()
             // Delay to ensure auth state is synced
             setTimeout(() => {
@@ -58,8 +75,8 @@ export default function LoginForm() {
       }
     } catch (error: any) {
       setError(error.message || 'Invalid email or password')
-    } finally {
       setLoading(false)
+      setNeedsProfileSetup(false)
     }
   }
 
@@ -167,6 +184,20 @@ export default function LoginForm() {
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </div>
+
+          {showRefreshMessage && needsProfileSetup && loading && (
+            <div className="bg-blue-500/20 border border-blue-500 text-blue-100 px-4 py-3 rounded-lg text-sm">
+              <p className="font-medium mb-2">Setting up your profile...</p>
+              <p className="mb-2">If you're not redirected automatically, please refresh the page to complete your profile setup.</p>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Refresh Page
+              </button>
+            </div>
+          )}
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
