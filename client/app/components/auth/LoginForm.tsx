@@ -16,12 +16,12 @@ export default function LoginForm() {
   const router = useRouter()
   const supabase = createClient()
 
-  // Show refresh message after 3 seconds if profile setup is needed and still loading
+  // Show refresh message after 1.5 seconds if profile setup is needed and still loading
   useEffect(() => {
     if (loading && needsProfileSetup) {
       const timer = setTimeout(() => {
         setShowRefreshMessage(true)
-      }, 3000)
+      }, 1500)
       return () => clearTimeout(timer)
     } else {
       setShowRefreshMessage(false)
@@ -60,11 +60,11 @@ export default function LoginForm() {
           if (!profile || !profile.is_profile_complete) {
             setNeedsProfileSetup(true)
             router.refresh()
-            // Delay to ensure auth state is synced
+            // Delay to ensure auth state is synced and give time for refresh message to appear
             setTimeout(() => {
               router.push('/auth/setup-profile')
               router.refresh()
-            }, 500)
+            }, 2000)
             return
           }
         }
