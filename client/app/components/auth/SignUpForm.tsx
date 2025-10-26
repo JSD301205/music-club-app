@@ -106,7 +106,12 @@ export default function SignUpForm() {
       router.push('/auth/setup-profile')
     }
     } catch (error: any) {
-      setError(error.message || 'An error occurred during signup')
+      // Show a user-friendly message if email is not confirmed
+      if (error?.message?.toLowerCase().includes('email not confirmed')) {
+        setError('Verify your email first')
+      } else {
+        setError(error.message || 'An error occurred during signup')
+      }
     } finally {
       setLoading(false)
     }
