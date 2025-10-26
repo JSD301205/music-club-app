@@ -26,7 +26,7 @@ export default function SettingsPage() {
     instruments: [] as string[],
     musicalInterests: [] as string[],
     batchYear: new Date().getFullYear(),
-    spotifyPlaylist: '',
+    socialLinks: [''],
     avatarUrl: '',
     role: 'member' as UserRole,
     isVisibleInCommunity: true,
@@ -50,7 +50,7 @@ export default function SettingsPage() {
         instruments: (profile.instruments as string[]) || [],
         musicalInterests: (profile.musical_interests as string[]) || [],
         batchYear: profile.batch_year || new Date().getFullYear(),
-        spotifyPlaylist: profile.spotify_playlist || '',
+        socialLinks: (profile.social_links as string[] && profile.social_links.length > 0) ? profile.social_links : [''],
         avatarUrl: profile.avatar_url || '',
         role: profile.role || 'member',
         isVisibleInCommunity: profile.is_visible_in_community ?? true,
@@ -118,7 +118,7 @@ export default function SettingsPage() {
           instruments: formData.instruments,
           musical_interests: formData.musicalInterests,
           batch_year: formData.batchYear,
-          spotify_playlist: formData.spotifyPlaylist || null,
+          social_links: formData.socialLinks.filter(link => link.trim() !== ''),
           avatar_url: avatarUrl || null,
           role: formData.role,
           is_visible_in_community: formData.isVisibleInCommunity,
@@ -357,15 +357,38 @@ export default function SettingsPage() {
             {/* Spotify Playlist */}
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Spotify Playlist (Optional)
+                Social Links (Optional)
               </label>
-              <input
-                type="url"
-                value={formData.spotifyPlaylist}
-                onChange={(e) => setFormData(prev => ({ ...prev, spotifyPlaylist: e.target.value }))}
-                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="https://open.spotify.com/playlist/..."
-              />
+              {formData.socialLinks.map((link, idx) => (
+                <div key={idx} className="flex gap-2 mb-2">
+                  <input
+                    type="url"
+                    value={link}
+                    onChange={e => {
+                      const newLinks = [...formData.socialLinks]
+                      newLinks[idx] = e.target.value
+                      setFormData(prev => ({ ...prev, socialLinks: newLinks }))
+                    }}
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="https://your-social-link.com"
+                  />
+                  <button
+                    type="button"
+                    className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium"
+                    onClick={() => setFormData(prev => ({ ...prev, socialLinks: prev.socialLinks.filter((_, i) => i !== idx) }))}
+                    disabled={formData.socialLinks.length === 1}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium mt-2"
+                onClick={() => setFormData(prev => ({ ...prev, socialLinks: [...prev.socialLinks, ''] }))}
+              >
+                Add Link
+              </button>
             </div>
 
             {/* Privacy & Role Settings */}
