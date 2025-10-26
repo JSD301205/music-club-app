@@ -229,12 +229,25 @@ export default function MessageRequestsPage() {
                             </Link>
                             <span
                               className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                                request.from_user?.role === 'member'
+                                request.from_user?.role === 'admin'
+                                  ? 'bg-orange-600 text-white'
+                                  : request.from_user?.role === 'member'
                                   ? 'bg-purple-600 text-white'
                                   : 'bg-pink-600 text-white'
                               }`}
+                              title={
+                                request.from_user?.role === 'admin'
+                                  ? 'Admin'
+                                  : request.from_user?.role === 'member'
+                                  ? 'Musician Member'
+                                  : 'Music Enthusiast'
+                              }
                             >
-                              {request.from_user?.role === 'member' ? '🎸' : '❤️'}
+                              {request.from_user?.role === 'admin'
+                                ? '🛡️'
+                                : request.from_user?.role === 'member'
+                                ? '🎸'
+                                : '❤️'}
                             </span>
                           </div>
                           <p className="text-gray-400 text-sm mb-2">@{request.from_user?.username}</p>

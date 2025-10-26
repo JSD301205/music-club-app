@@ -366,7 +366,13 @@ export default function SettingsPage() {
                   <div>
                     <p className="text-white font-medium">Your Role</p>
                     <p className="text-gray-300 text-sm">
-                      You are currently a <span className="font-bold">{formData.role === 'member' ? '🎸 Member' : '❤️ Enthusiast'}</span>
+                      You are currently a <span className="font-bold">
+                        {formData.role === 'admin' 
+                          ? '🛡️ Admin' 
+                          : formData.role === 'member' 
+                          ? '🎸 Member' 
+                          : '❤️ Enthusiast'}
+                      </span>
                     </p>
                   </div>
                   {formData.role === 'enthusiast' && (

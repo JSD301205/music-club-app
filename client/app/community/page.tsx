@@ -239,13 +239,21 @@ export default function CommunityPage() {
                       {/* Role Badge */}
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          member.role === 'member'
+                          member.role === 'admin'
+                            ? 'bg-orange-600 text-white'
+                            : member.role === 'member'
                             ? 'bg-purple-600 text-white'
                             : 'bg-pink-600 text-white'
                         }`}
-                        title={member.role === 'member' ? 'Musician Member' : 'Music Enthusiast'}
+                        title={
+                          member.role === 'admin'
+                            ? 'Admin'
+                            : member.role === 'member'
+                            ? 'Musician Member'
+                            : 'Music Enthusiast'
+                        }
                       >
-                        {member.role === 'member' ? '🎸' : '❤️'}
+                        {member.role === 'admin' ? '🛡️' : member.role === 'member' ? '🎸' : '❤️'}
                       </span>
                     </div>
                     <p className="text-gray-300 text-sm">@{member.username}</p>

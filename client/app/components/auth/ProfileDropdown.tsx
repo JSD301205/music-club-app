@@ -121,13 +121,21 @@ export default function ProfileDropdown() {
               <p className="text-sm font-semibold text-white">{profile.full_name || profile.username}</p>
               <span
                 className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                  profile.role === 'member'
+                  profile.role === 'admin'
+                    ? 'bg-orange-600 text-white'
+                    : profile.role === 'member'
                     ? 'bg-purple-600 text-white'
                     : 'bg-pink-600 text-white'
                 }`}
-                title={profile.role === 'member' ? 'Musician Member' : 'Music Enthusiast'}
+                title={
+                  profile.role === 'admin'
+                    ? 'Admin'
+                    : profile.role === 'member'
+                    ? 'Musician Member'
+                    : 'Music Enthusiast'
+                }
               >
-                {profile.role === 'member' ? '🎸' : '❤️'}
+                {profile.role === 'admin' ? '🛡️' : profile.role === 'member' ? '🎸' : '❤️'}
               </span>
             </div>
             <p className="text-xs text-gray-400 truncate">{user.email}</p>

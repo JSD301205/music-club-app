@@ -61,13 +61,25 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
                   {/* Role Badge */}
                   <span
                     className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                      userProfile.role === 'member'
+                      userProfile.role === 'admin'
+                        ? 'bg-orange-600 text-white'
+                        : userProfile.role === 'member'
                         ? 'bg-purple-600 text-white'
                         : 'bg-pink-600 text-white'
                     }`}
-                    title={userProfile.role === 'member' ? 'Musician Member' : 'Music Enthusiast'}
+                    title={
+                      userProfile.role === 'admin'
+                        ? 'Admin'
+                        : userProfile.role === 'member'
+                        ? 'Musician Member'
+                        : 'Music Enthusiast'
+                    }
                   >
-                    {userProfile.role === 'member' ? '🎸 Member' : '❤️ Enthusiast'}
+                    {userProfile.role === 'admin'
+                      ? '🛡️ Admin'
+                      : userProfile.role === 'member'
+                      ? '🎸 Member'
+                      : '❤️ Enthusiast'}
                   </span>
                 </div>
                 <p className="text-gray-300 text-lg mb-4">@{userProfile.username}</p>
