@@ -243,6 +243,8 @@ export default function CommunityPage() {
                             ? 'bg-orange-600 text-white'
                             : member.role === 'member'
                             ? 'bg-purple-600 text-white'
+                            : member.role === 'alumni'
+                            ? 'bg-yellow-500 text-white'
                             : 'bg-pink-600 text-white'
                         }`}
                         title={
@@ -250,10 +252,18 @@ export default function CommunityPage() {
                             ? 'Admin'
                             : member.role === 'member'
                             ? 'Musician Member'
+                            : member.role === 'alumni'
+                            ? 'Alumni (Graduated)'
                             : 'Music Enthusiast'
                         }
                       >
-                        {member.role === 'admin' ? '🛡️' : member.role === 'member' ? '🎸' : '❤️'}
+                        {member.role === 'admin'
+                          ? '🛡️'
+                          : member.role === 'member'
+                          ? '🎸'
+                          : member.role === 'alumni'
+                          ? '🎓'
+                          : '❤️'}
                       </span>
                     </div>
                     <p className="text-gray-300 text-sm">@{member.username}</p>
