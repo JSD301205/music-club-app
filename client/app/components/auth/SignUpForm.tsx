@@ -175,7 +175,7 @@ export default function SignUpForm() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="appearance-none rounded-lg relative block w-full pl-10 px-3 py-3 border border-gray-600 placeholder-gray-400 text-white bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="Username"
+                  placeholder="Username (cannot be changed later)"
                   minLength={3}
                   maxLength={30}
                   pattern="[a-zA-Z0-9_]+"
