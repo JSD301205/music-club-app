@@ -32,6 +32,7 @@
 
 11. **Song/Setlist Sharing**
     - Members can share and collaboratively edit setlists, chord sheets, and song suggestions for events.
+    - Section for Originals by our Club
 
 12. **Music Resource Library**
     - Curated library of learning resources (tutorials, sheet music, backing tracks) categorized by instrument and skill level.

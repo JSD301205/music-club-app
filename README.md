@@ -246,11 +246,6 @@ For any queries or support, please reach out to:
 - Email: [musicclub.iiitdm@gmail.com](mailto:musicclub.iiitdm@gmail.com)
 - Website: [https://music-club-iiitdm.vercel.app](https://music-club-iiitdm.vercel.app)
 
-## 🎯 Upcoming Features
-- 🔐 **Member Authentication System**
-- 🎵 **Section for Originals by our Club**
-- 📱 **Mobile App Development**
-- 🌐 **Multi-language Support**
 
 ## 🔄 Recent Updates
 - 📱 **Enhanced Mobile Responsiveness** with improved UI/UX for all screen sizes
