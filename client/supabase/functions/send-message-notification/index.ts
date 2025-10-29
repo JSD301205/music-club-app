@@ -18,13 +18,14 @@ interface MessageNotificationPayload {
   conversationId: string
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    console.log('[send-message-notification] Invocation start')
     // Create Supabase client - automatically uses SUPABASE_URL and SUPABASE_ANON_KEY from env
     // These are provided automatically by Supabase Edge Functions
     const supabaseClient = createClient(
@@ -36,6 +37,27 @@ serve(async (req) => {
     const payload: MessageNotificationPayload = await req.json()
     const { senderId, receiverId, content, conversationId } = payload
 
+    console.log('[send-message-notification] Payload parsed', { hasSenderId: !!senderId, hasReceiverId: !!receiverId, contentLen: content?.length, hasConversationId: !!conversationId })
+
+    // Validate required env vars for EmailJS and app URL
+    const appUrl = Deno.env.get('APP_URL')
+    const emailServiceId = Deno.env.get('EMAILJS_SERVICE_ID')
+    const emailTemplateId = Deno.env.get('EMAILJS_TEMPLATE_NEW_MESSAGE')
+    const emailPublicKey = Deno.env.get('EMAILJS_PUBLIC_KEY')
+
+    const missing: string[] = []
+    if (!appUrl) missing.push('APP_URL')
+    if (!emailServiceId) missing.push('EMAILJS_SERVICE_ID')
+    if (!emailTemplateId) missing.push('EMAILJS_TEMPLATE_NEW_MESSAGE')
+    if (!emailPublicKey) missing.push('EMAILJS_PUBLIC_KEY')
+    if (missing.length) {
+      console.error('[send-message-notification] Missing env vars:', missing)
+      return new Response(
+        JSON.stringify({ error: 'Missing required environment variables', missing }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      )
+    }
+
     // Fetch receiver profile to check notification preferences
     const { data: receiverProfile, error: receiverError } = await supabaseClient
       .from('profiles')
@@ -44,6 +66,7 @@ serve(async (req) => {
       .single()
 
     if (receiverError || !receiverProfile) {
+      console.error('[send-message-notification] Fetch receiver error:', receiverError)
       throw new Error('Failed to fetch receiver profile')
     }
 
@@ -83,6 +106,7 @@ serve(async (req) => {
       .single()
 
     if (senderError || !senderProfile) {
+      console.error('[send-message-notification] Fetch sender error:', senderError)
       throw new Error('Failed to fetch sender profile')
     }
 
@@ -92,10 +116,10 @@ serve(async (req) => {
       to_name: receiverProfile.full_name || receiverProfile.username,
       from_name: senderProfile.full_name || senderProfile.username,
       message_preview: content.substring(0, 150),
-      conversation_link: `${Deno.env.get('APP_URL')}/community/messages?conversation=${conversationId}`,
-      service_id: Deno.env.get('EMAILJS_SERVICE_ID'),
-      template_id: Deno.env.get('EMAILJS_TEMPLATE_NEW_MESSAGE'),
-      public_key: Deno.env.get('EMAILJS_PUBLIC_KEY'),
+      conversation_link: `${appUrl}/community/messages?conversation=${conversationId}`,
+      service_id: emailServiceId!,
+      template_id: emailTemplateId!,
+      public_key: emailPublicKey!,
     }
 
     // Send email via EmailJS API
@@ -120,7 +144,12 @@ serve(async (req) => {
     })
 
     if (!emailResponse.ok) {
-      throw new Error(`EmailJS API error: ${emailResponse.status}`)
+      const errText = await emailResponse.text().catch(() => '')
+      console.error('[send-message-notification] EmailJS error', { status: emailResponse.status, body: errText })
+      return new Response(
+        JSON.stringify({ error: 'EmailJS API error', status: emailResponse.status, body: errText }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      )
     }
 
     // Update last_email_sent_at timestamp
