@@ -30,6 +30,7 @@ export default function SettingsPage() {
     role: 'member' as UserRole,
     isVisibleInCommunity: true,
     allowMessagesFrom: 'members_only' as MessagePermission,
+    emailNotificationsEnabled: true,
   })
   
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
@@ -59,6 +60,7 @@ export default function SettingsPage() {
         role: profile.role || 'member',
         isVisibleInCommunity: profile.is_visible_in_community ?? true,
         allowMessagesFrom: profile.allow_messages_from || 'members_only',
+        emailNotificationsEnabled: (profile as any).email_notifications_enabled ?? true,
       })
     }
   }, [profile])
@@ -126,6 +128,7 @@ export default function SettingsPage() {
           role: formData.role,
           is_visible_in_community: formData.isVisibleInCommunity,
           allow_messages_from: formData.allowMessagesFrom,
+          email_notifications_enabled: formData.emailNotificationsEnabled,
         })
         .eq('id', user.id)
 
@@ -521,6 +524,29 @@ export default function SettingsPage() {
                     </div>
                   </label>
                 </div>
+              </div>
+
+              {/* Email Notifications */}
+              <div className="mt-6">
+                <label className="flex items-center justify-between p-4 bg-gray-800/50 border border-gray-600 rounded-lg cursor-pointer hover:border-purple-500 transition-all">
+                  <div className="flex items-center gap-3">
+                    <FaEnvelope className={`text-xl ${formData.emailNotificationsEnabled ? 'text-blue-400' : 'text-gray-400'}`} />
+                    <div>
+                      <p className="text-white font-medium">Email Notifications</p>
+                      <p className="text-gray-400 text-sm">
+                        {formData.emailNotificationsEnabled
+                          ? 'Receive emails when you get new messages'
+                          : 'Email notifications are disabled'}
+                      </p>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={formData.emailNotificationsEnabled}
+                    onChange={(e) => setFormData(prev => ({ ...prev, emailNotificationsEnabled: e.target.checked }))}
+                    className="w-6 h-6 text-purple-600 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
+                  />
+                </label>
               </div>
             </div>
 
