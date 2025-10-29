@@ -243,11 +243,13 @@ export function useMessages(conversationId: string | undefined) {
         // This will check user preferences and rate limits before sending
         try {
           const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-          if (supabaseUrl) {
+          const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+          if (supabaseUrl && supabaseAnonKey) {
             fetch(`${supabaseUrl}/functions/v1/send-message-notification`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                'apikey': supabaseAnonKey,
               },
               body: JSON.stringify({
                 messageId: messageWithSender.id,
