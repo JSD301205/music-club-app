@@ -238,6 +238,32 @@ export function useMessages(conversationId: string | undefined) {
           }
           return [...current, messageWithSender]
         })
+
+        // Trigger email notification (non-blocking)
+        // This will check user preferences and rate limits before sending
+        try {
+          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+          if (supabaseUrl) {
+            fetch(`${supabaseUrl}/functions/v1/send-message-notification`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                messageId: messageWithSender.id,
+                senderId,
+                receiverId,
+                content,
+                conversationId,
+              }),
+            }).catch((err) => {
+              // Silently fail - don't break message sending if notification fails
+              console.warn('Failed to send email notification:', err)
+            })
+          }
+        } catch (err) {
+          console.warn('Error triggering email notification:', err)
+        }
       }
     } catch (error) {
       console.error('Error sending message:', error)
