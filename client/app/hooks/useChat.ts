@@ -239,34 +239,8 @@ export function useMessages(conversationId: string | undefined) {
           return [...current, messageWithSender]
         })
 
-        // Trigger email notification (non-blocking)
-        // This will check user preferences and rate limits before sending
-        try {
-          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-          const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-          if (supabaseUrl && supabaseAnonKey) {
-            fetch(`${supabaseUrl}/functions/v1/send-message-notification`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': supabaseAnonKey,
-                'Authorization': `Bearer ${supabaseAnonKey}`,
-              },
-              body: JSON.stringify({
-                messageId: messageWithSender.id,
-                senderId,
-                receiverId,
-                content,
-                conversationId,
-              }),
-            }).catch((err) => {
-              // Silently fail - don't break message sending if notification fails
-              console.warn('Failed to send email notification:', err)
-            })
-          }
-        } catch (err) {
-          console.warn('Error triggering email notification:', err)
-        }
+        // Email notifications removed - using weekly digest instead
+        // Users will receive a weekly summary of unread messages via the weekly-unread-digest function
       }
     } catch (error) {
       console.error('Error sending message:', error)
