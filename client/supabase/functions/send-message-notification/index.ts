@@ -127,6 +127,10 @@ serve(async (req: Request) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        // EmailJS validates the Origin against allowed domains in your EmailJS dashboard
+        // Use your app URL so it matches the configured domain
+        'Origin': appUrl,
+        'Referer': appUrl,
       },
       body: JSON.stringify({
         service_id: emailData.service_id,
