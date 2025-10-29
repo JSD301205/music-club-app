@@ -250,6 +250,7 @@ export function useMessages(conversationId: string | undefined) {
               headers: {
                 'Content-Type': 'application/json',
                 'apikey': supabaseAnonKey,
+                'Authorization': `Bearer ${supabaseAnonKey}`,
               },
               body: JSON.stringify({
                 messageId: messageWithSender.id,
