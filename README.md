@@ -12,10 +12,20 @@ The official website for the Music Club of IIITDM Kancheepuram, built with moder
 
 ### Core Features
 - 🎵 **Interactive Homepage** with animated sections and modern UI
-- 📱 **Responsive Design** that works seamlessly across all devices
-- 🎨 **Modern UI/UX** with smooth animations and transitions
-- 🌓 **Dark Mode** support with automatic system preference detection
-- 🔧 **Admin Interface** for easy content management
+- 📱 **Responsive Design** for all devices
+- 🎨 **Modern UI/UX** with smooth animations
+- 🌓 **Dark Mode** support
+- 🔧 **Admin Interface** for content management
+- 🛡️ **Role-Based Access** (Admin, Member, Enthusiast)
+- 🔐 **Supabase Authentication & Profile System**
+- 📝 **Profile Completion Enforcement** (required for community/jam-board)
+- 💬 **Group Chat & Direct Messaging** (with profile-based restrictions)
+- 📧 **Password Reset & Email Verification**
+- �️ **Avatar Upload & Cropping**
+- 🏷️ **Event & Gallery Management**
+- 🏆 **Jam Board** for collaborative posts
+- 🗂️ **Community Directory** with role badges
+- 🛠️ **Admin Tools** for gallery/events
 
 ### Sections
 1. **Hero Section**
@@ -57,6 +67,22 @@ The official website for the Music Club of IIITDM Kancheepuram, built with moder
    - Form-based interface for adding new content
    - Automatic ID generation and position management
    - One-click code copying for seamless updates
+
+8. **Community & Messaging**
+   - Community directory with role badges
+   - Direct messaging (cannot message yourself)
+   - Group chat (with deployment guide)
+   - Profile completion required for access
+
+9. **Profile Setup**
+   - Enthusiasts: Only bio, genres, batch year required
+   - Members: Bio, instruments, genres, batch year required
+   - Avatar upload and cropping
+   - Spotify playlist link (optional)
+
+10. **Security & Access**
+   - Middleware restricts access to protected routes for incomplete profiles
+   - Password reset and email verification flows
 
 ## 🛠️ Technical Stack
 
@@ -220,11 +246,6 @@ For any queries or support, please reach out to:
 - Email: [musicclub.iiitdm@gmail.com](mailto:musicclub.iiitdm@gmail.com)
 - Website: [https://music-club-iiitdm.vercel.app](https://music-club-iiitdm.vercel.app)
 
-## 🎯 Upcoming Features
-- 🔐 **Member Authentication System**
-- 🎵 **Section for Originals by our Club**
-- 📱 **Mobile App Development**
-- 🌐 **Multi-language Support**
 
 ## 🔄 Recent Updates
 - 📱 **Enhanced Mobile Responsiveness** with improved UI/UX for all screen sizes

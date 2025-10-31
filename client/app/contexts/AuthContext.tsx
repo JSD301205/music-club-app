@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { createClient } from '../lib/supabase-client'
 import { Profile } from '../types/database.types'
@@ -21,11 +21,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [initialized, setInitialized] = useState(false)
   const supabase = createClient()
+  const fetchingProfile = useRef(false)
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string): Promise<void> => {
+    // Prevent concurrent profile fetches
+    if (fetchingProfile.current) return
+    
+    fetchingProfile.current = true
     try {
-      // @ts-ignore - Supabase types
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -34,22 +39,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Error fetching profile:', error)
-        
-        // If profile doesn't exist, sign out the user
-        if (error.code === 'PGRST116') {
-          console.warn('Profile not found for user, signing out...')
-          await supabase.auth.signOut()
-          setUser(null)
-          setSession(null)
-          setProfile(null)
-          return
-        }
-        throw error
+        setProfile(null)
+        return
       }
+
       setProfile(data)
     } catch (error) {
-      console.error('Error fetching profile:', error)
+      console.error('Unexpected error fetching profile:', error)
       setProfile(null)
+    } finally {
+      fetchingProfile.current = false
     }
   }
 
@@ -60,74 +59,86 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    // Safety timeout to ensure loading doesn't stay true forever
-    const timeout = setTimeout(() => {
-      if (loading) {
-        console.warn('Auth loading timeout - forcing loading to false')
-        setLoading(false)
-      }
-    }, 3000)
+    let mounted = true
 
-    // Check if Supabase is configured
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      console.error('Supabase environment variables not configured - auth will not work')
-      setUser(null)
-      setSession(null)
-      setProfile(null)
-      setLoading(false)
-      clearTimeout(timeout)
-      return () => {
-        clearTimeout(timeout)
+    // Initialize auth state
+    const initAuth = async () => {
+      try {
+        // Get current session
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (!mounted) return
+
+        // Only log error if it's not a session missing error (which is expected when logged out)
+        if (error && error.message !== 'Auth session missing!') {
+          console.error('Error getting session:', error)
+        }
+
+        setSession(session)
+        setUser(session?.user ?? null)
+
+        // Fetch profile if user exists
+        if (session?.user) {
+          await fetchProfile(session.user.id)
+        }
+      } catch (error: any) {
+        // Only log error if it's not a session missing error
+        if (error?.message !== 'Auth session missing!') {
+          console.error('Error initializing auth:', error)
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false)
+          setInitialized(true)
+        }
       }
     }
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('AuthContext - Session loaded:', session ? 'exists' : 'none')
-      const newUser = session?.user ?? null
-      console.log('AuthContext - Initial user:', newUser)
-      setSession(session)
-      setUser(newUser)
-      if (session?.user) {
-        fetchProfile(session.user.id)
-      }
-      setLoading(false)
-      clearTimeout(timeout)
-    }).catch((error) => {
-      console.error('Error getting session:', error)
-      setUser(null)
-      setLoading(false)
-      clearTimeout(timeout)
-    })
+    initAuth()
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('AuthContext - Auth state changed:', _event, session)
-      const newUser = session?.user ?? null
-      console.log('AuthContext - Setting user to:', newUser)
-      setSession(session)
-      setUser(newUser)
-      if (session?.user) {
-        fetchProfile(session.user.id)
-      } else {
-        setProfile(null)
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted || !initialized) return
+
+        console.log('Auth state changed:', event)
+        
+        // Set loading while fetching profile for signed in users
+        if (session?.user && event === 'SIGNED_IN') {
+          setLoading(true)
+        }
+        
+        setSession(session)
+        setUser(session?.user ?? null)
+
+        if (session?.user) {
+          await fetchProfile(session.user.id)
+        } else {
+          setProfile(null)
+        }
+
+        // Done loading
+        if (mounted) {
+          setLoading(false)
+        }
       }
-      setLoading(false)
-    })
+    )
 
     return () => {
+      mounted = false
       subscription.unsubscribe()
-      clearTimeout(timeout)
     }
   }, [])
 
   const signOut = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-    setProfile(null)
-    setSession(null)
+    try {
+      await supabase.auth.signOut()
+      setUser(null)
+      setProfile(null)
+      setSession(null)
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
   }
 
   return (

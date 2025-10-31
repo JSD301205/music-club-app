@@ -74,7 +74,43 @@ export function useConversations(userId: string | undefined) {
 
   useEffect(() => {
     fetchConversations()
-  }, [fetchConversations])
+
+    // Subscribe to message changes to update unread counts
+    if (!userId) return
+
+    const channel = supabase
+      .channel(`conversations-updates-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        () => {
+          // Refetch conversations when new messages arrive
+          fetchConversations()
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `receiver_id=eq.${userId}`, // Only listen to updates for messages we receive
+        },
+        () => {
+          // Refetch conversations when messages are marked as read
+          fetchConversations()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [fetchConversations, userId])
 
   return { conversations, loading, refetch: fetchConversations }
 }
@@ -202,6 +238,9 @@ export function useMessages(conversationId: string | undefined) {
           }
           return [...current, messageWithSender]
         })
+
+        // Email notifications removed - using weekly digest instead
+        // Users will receive a weekly summary of unread messages via the weekly-unread-digest function
       }
     } catch (error) {
       console.error('Error sending message:', error)

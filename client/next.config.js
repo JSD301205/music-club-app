@@ -16,6 +16,11 @@ const nextConfig = {
         protocol: 'https',
         hostname: '*.googleusercontent.com', // handles all google avatar URLs
       },
+      'images.unsplash.com', 
+      'randomuser.me', 
+      'firebasestorage.googleapis.com', 
+      'hqesoizfzxbqbrlthyix.supabase.co',
+      'lh3.googleusercontent.com',
     ],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],

@@ -1,0 +1,8 @@
+# Cron schedule for weekly unread messages digest
+# Runs every Sunday at 11:00 PM (23:00) UTC
+# To convert to your timezone: https://www.worldtimebuddy.com/
+
+# Format: minute hour day-of-month month day-of-week
+# Example: "0 23 * * 0" = Every Sunday at 11:00 PM UTC
+
+schedule: "0 23 * * 0"

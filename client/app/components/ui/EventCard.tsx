@@ -5,16 +5,34 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { FaCalendar, FaClock, FaMapMarkerAlt } from 'react-icons/fa';
 import { Event } from '../../data/events2024';
+import { Event as SupabaseEvent } from '../../lib/supabase';
 import Link from 'next/link';
 import LazyYoutubeEmbed from './LazyYoutubeEmbed';
 
 interface EventCardProps {
-  event: Event;
+  event: Event | SupabaseEvent;
 }
 
 export default function EventCard({ event }: EventCardProps) {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Helper functions to handle both camelCase (2024) and snake_case (2025 Supabase) properties
+  const getRegistrationLink = () => {
+    return (event as any).registrationLink || (event as any).registration_link;
+  };
+
+  const getYoutubeUrl = () => {
+    return (event as any).youtubeUrl || (event as any).youtube_url;
+  };
+
+  const getViewBandsLink = () => {
+    return (event as any).viewBandsLink || (event as any).view_bands_link;
+  };
+
+  const getGalleryRoute = () => {
+    return (event as any).galleryRoute || (event as any).gallery_route;
+  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -33,11 +51,16 @@ export default function EventCard({ event }: EventCardProps) {
     return match ? match[1] : '';
   };
 
-  const shouldShowGalleryButton = (event: Event) => {
+  const shouldShowGalleryButton = (event: Event | SupabaseEvent) => {
+    // Don't show gallery for these specific events
     if (event.title === "Unofficial Open Mic Night") return false;
     if (event.title === "Spooky Symphonies: Battle of Bands Meraki") return false;
     
-    // Add specific events that need gallery buttons
+    // Show gallery button if the event has a gallery route
+    const galleryRoute = getGalleryRoute();
+    if (!galleryRoute) return false;
+    
+    // Show for Open Mics, Competitions, Workshops, or specific club performances
     const eventsWithGallery = [
       "4th [Unofficial] Open Mic Night",
       "Republic Day (Club Performance)",
@@ -49,11 +72,13 @@ export default function EventCard({ event }: EventCardProps) {
       "Independence Day (Club Performance)",
       "Onam (Club Performance)",
       "Workshop: How to form a Band",
-      "Winter Concert (Club Performance)"
+      "Winter Concert (Club Performance)",
+      "1st Open Mic Night"
     ];
     
     return event.category === 'Open Mics' || 
            event.category === 'Competitions' || 
+           event.category === 'Workshops' ||
            eventsWithGallery.includes(event.title);
   };
 
@@ -107,7 +132,8 @@ export default function EventCard({ event }: EventCardProps) {
           </div>
           <p className="mt-4 text-gray-400">{event.description}</p>
           <div className="mt-6 space-y-3">
-            {event.category === 'Performances' && event.youtubeUrl ? (
+            {/* For club performances with YouTube video */}
+            {event.category === 'Performances' && getYoutubeUrl() && !getGalleryRoute() ? (
               <button
                 onClick={() => setIsVideoOpen(true)}
                 className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center"
@@ -117,11 +143,12 @@ export default function EventCard({ event }: EventCardProps) {
                 </svg>
                 Watch Video
               </button>
-            ) : isSpookySymponies ? (
+            ) : /* For Spooky Symphonies special case */
+            isSpookySymponies ? (
               <div className="grid grid-cols-2 gap-3">
-                {event.registrationLink && (
+                {getRegistrationLink() && (
                   <a
-                    href={event.registrationLink}
+                    href={getRegistrationLink()}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center"
@@ -129,20 +156,29 @@ export default function EventCard({ event }: EventCardProps) {
                     Register Now
                   </a>
                 )}
-                {event.viewBandsLink && (
+                {getViewBandsLink() && (
                   <Link
-                    href={event.viewBandsLink}
+                    href={getViewBandsLink()}
                     className="w-full bg-secondary-600 hover:bg-secondary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center"
                   >
                     View Bands
                   </Link>
                 )}
               </div>
-            ) : shouldShowGalleryButton(event) ? (
+            ) : /* For club performances with gallery route */
+            event.category === 'Performances' && getGalleryRoute() ? (
+              <Link
+                href={getGalleryRoute()}
+                className="w-full bg-secondary-600 hover:bg-secondary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center"
+              >
+                Gallery
+              </Link>
+            ) : /* For Open Mics, Competitions, Workshops with gallery */
+            shouldShowGalleryButton(event) ? (
               <div className="grid grid-cols-2 gap-3">
-                {event.registrationLink && (
+                {getRegistrationLink() && (
                   <a
-                    href={event.registrationLink}
+                    href={getRegistrationLink()}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center"
@@ -150,20 +186,21 @@ export default function EventCard({ event }: EventCardProps) {
                     Register Now
                   </a>
                 )}
-                {event.galleryRoute && (
+                {getGalleryRoute() && (
                   <Link
-                    href={event.galleryRoute}
+                    href={getGalleryRoute()}
                     className={`w-full bg-secondary-600 hover:bg-secondary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center ${
-                      !event.registrationLink ? 'col-span-2' : ''
+                      !getRegistrationLink() ? 'col-span-2' : ''
                     }`}
                   >
                     Gallery
                   </Link>
                 )}
               </div>
-            ) : event.registrationLink ? (
+            ) : /* Fallback: just registration link if available */
+            getRegistrationLink() ? (
               <a
-                href={event.registrationLink}
+                href={getRegistrationLink()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center"
@@ -203,8 +240,8 @@ export default function EventCard({ event }: EventCardProps) {
               <div className="relative w-full" style={{ 
                 maxHeight: isMobile ? '80vh' : '90vh'
               }}>
-                {event.youtubeUrl && (
-                  <LazyYoutubeEmbed youtubeUrl={event.youtubeUrl} title={event.title} />
+                {getYoutubeUrl() && (
+                  <LazyYoutubeEmbed youtubeUrl={getYoutubeUrl()} title={event.title} />
                 )}
               </div>
             </motion.div>

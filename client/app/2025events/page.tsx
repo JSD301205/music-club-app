@@ -50,13 +50,13 @@ export default function Events2025Page() {
     async function fetchEvents() {
       try {
         setLoading(true);
-        console.log('Fetching events for year 2025...');
+        // console.log('Fetching events for year 2025...');
         const [past, upcoming] = await Promise.all([
           getEvents(2025, 'past'),
           getEvents(2025, 'upcoming')
         ]);
-        console.log('Past events fetched:', past);
-        console.log('Upcoming events fetched:', upcoming);
+        // console.log('Past events fetched:', past);
+        // console.log('Upcoming events fetched:', upcoming);
         setPastEvents(past);
         setUpcomingEvents(upcoming);
         setError(null);
@@ -104,16 +104,16 @@ export default function Events2025Page() {
   const filteredPastEvents = filterEventsByCategory(pastEvents);
   const filteredUpcomingEvents = filterEventsByCategory(upcomingEvents);
 
-  console.log('Current state:', {
-    loading,
-    error,
-    pastEventsCount: pastEvents.length,
-    upcomingEventsCount: upcomingEvents.length,
-    filteredPastCount: filteredPastEvents.length,
-    filteredUpcomingCount: filteredUpcomingEvents.length,
-    activeTab,
-    selectedCategory
-  });
+  // console.log('Current state:', {
+  //   loading,
+  //   error,
+  //   pastEventsCount: pastEvents.length,
+  //   upcomingEventsCount: upcomingEvents.length,
+  //   filteredPastCount: filteredPastEvents.length,
+  //   filteredUpcomingCount: filteredUpcomingEvents.length,
+  //   activeTab,
+  //   selectedCategory
+  // });
 
   if (loading) {
     return (

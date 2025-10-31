@@ -8,23 +8,14 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { FaSearch, FaFilter, FaGuitar, FaMusic, FaEnvelope } from 'react-icons/fa'
-
-const INSTRUMENTS = [
-  'Guitar', 'Drums', 'Vocals', 'Piano', 'Bass', 'Keyboard',
-  'Violin', 'Flute', 'Saxophone', 'DJ/Production'
-]
-
-const GENRES = [
-  'Rock', 'Pop', 'Jazz', 'Classical', 'Hip Hop', 'Electronic',
-  'Blues', 'Country', 'R&B', 'Metal', 'Indie', 'Folk',
-  'Carnatic', 'Hindustani', 'Fusion'
-]
+import { INSTRUMENTS, GENRES } from '@/app/constants/music'
+import Avatar from '@/app/components/ui/Avatar'
 
 export default function CommunityPage() {
   const { user, loading: authLoading } = useAuth()
   const [members, setMembers] = useState<Profile[]>([])
   const [filteredMembers, setFilteredMembers] = useState<Profile[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedInstrument, setSelectedInstrument] = useState<string>('')
   const [selectedGenre, setSelectedGenre] = useState<string>('')
@@ -33,14 +24,30 @@ export default function CommunityPage() {
   const supabase = createClient()
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/auth/login')
-    }
-  }, [user, authLoading, router])
+    // Handle authentication and data fetching
+    const initializePage = async () => {
+      if (authLoading) {
+        // Still checking auth, wait
+        return
+      }
 
-  useEffect(() => {
-    fetchMembers()
-  }, [])
+      if (!user) {
+        // Not authenticated, redirect to login
+        router.push('/auth/login')
+        return
+      }
+
+      // User is authenticated, fetch members
+      fetchMembers()
+    }
+
+    initializePage()
+  }, [user, authLoading])
+
+  // Remove the separate fetchMembers useEffect since it's now called above
+  // useEffect(() => {
+  //   fetchMembers()
+  // }, [])
 
   useEffect(() => {
     filterMembers()
@@ -48,11 +55,13 @@ export default function CommunityPage() {
 
   const fetchMembers = async () => {
     try {
+      setLoading(true)
       // @ts-ignore - Supabase types
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('is_profile_complete', true)
+        .eq('is_visible_in_community', true)  // Only show visible profiles
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -100,7 +109,7 @@ export default function CommunityPage() {
     setSelectedGenre('')
   }
 
-  if (authLoading || loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-gray-900 flex items-center justify-center">
         <div className="text-white text-2xl">Loading...</div>
@@ -109,6 +118,14 @@ export default function CommunityPage() {
   }
 
   if (!user) return null
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-gray-900 flex items-center justify-center">
+        <div className="text-white text-2xl">Loading community members...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-gray-900 py-20 px-4">
@@ -206,26 +223,49 @@ export default function CommunityPage() {
               <div className="p-6">
                 {/* Profile Picture */}
                 <div className="flex items-start gap-4 mb-4">
-                  {member.avatar_url ? (
-                    <Image
-                      src={member.avatar_url}
-                      alt={member.username}
-                      width={80}
-                      height={80}
-                      className="rounded-full border-4 border-purple-500"
-                    />
-                  ) : (
-                    <div className="w-20 h-20 rounded-full bg-purple-600 flex items-center justify-center border-4 border-purple-500">
-                      <span className="text-white text-2xl font-bold">
-                        {member.username.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
+                  <Avatar
+                    src={member.avatar_url}
+                    alt={member.username}
+                    fallback={member.username}
+                    size="lg"
+                    className="border-4 border-purple-500"
+                  />
 
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-white mb-1">
-                      {member.full_name || member.username}
-                    </h3>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-xl font-bold text-white">
+                        {member.full_name || member.username}
+                      </h3>
+                      {/* Role Badge */}
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          member.role === 'admin'
+                            ? 'bg-orange-600 text-white'
+                            : member.role === 'member'
+                            ? 'bg-purple-600 text-white'
+                            : member.role === 'alumni'
+                            ? 'bg-yellow-500 text-white'
+                            : 'bg-pink-600 text-white'
+                        }`}
+                        title={
+                          member.role === 'admin'
+                            ? 'Admin'
+                            : member.role === 'member'
+                            ? 'Musician Member'
+                            : member.role === 'alumni'
+                            ? 'Alumni (Graduated)'
+                            : 'Music Enthusiast'
+                        }
+                      >
+                        {member.role === 'admin'
+                          ? '🛡️'
+                          : member.role === 'member'
+                          ? '🎸'
+                          : member.role === 'alumni'
+                          ? '🎓'
+                          : '❤️'}
+                      </span>
+                    </div>
                     <p className="text-gray-300 text-sm">@{member.username}</p>
                     {member.batch_year && (
                       <p className="text-purple-400 text-sm">Batch {member.batch_year}</p>

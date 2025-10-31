@@ -54,9 +54,40 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
               )}
 
               <div className="flex-1 mt-16 md:mt-20">
-                <h1 className="text-4xl font-bold text-white mb-2">
-                  {userProfile.full_name || userProfile.username}
-                </h1>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-4xl font-bold text-white">
+                    {userProfile.full_name || userProfile.username}
+                  </h1>
+                  {/* Role Badge */}
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      userProfile.role === 'admin'
+                        ? 'bg-orange-600 text-white'
+                        : userProfile.role === 'member'
+                        ? 'bg-purple-600 text-white'
+                        : userProfile.role === 'alumni'
+                        ? 'bg-yellow-500 text-white'
+                        : 'bg-pink-600 text-white'
+                    }`}
+                    title={
+                      userProfile.role === 'admin'
+                        ? 'Admin'
+                        : userProfile.role === 'member'
+                        ? 'Musician Member'
+                        : userProfile.role === 'alumni'
+                        ? 'Alumni (Graduated)'
+                        : 'Music Enthusiast'
+                    }
+                  >
+                    {userProfile.role === 'admin'
+                      ? '🛡️ Admin'
+                      : userProfile.role === 'member'
+                      ? '🎸 Member'
+                      : userProfile.role === 'alumni'
+                      ? '🎓 Alumni'
+                      : '❤️ Enthusiast'}
+                  </span>
+                </div>
                 <p className="text-gray-300 text-lg mb-4">@{userProfile.username}</p>
 
                 <div className="flex flex-wrap gap-4 items-center">
@@ -74,15 +105,19 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
               </div>
 
               {/* Message Button */}
-              <div className="mt-16 md:mt-20">
-                <Link
-                  href={`/community/messages?user=${userProfile.username}`}
-                  className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-all"
-                >
-                  <FaEnvelope />
-                  Send Message
-                </Link>
-              </div>
+              {/* Hide Send Message button if viewing own profile */}
+              {typeof window !== 'undefined' &&
+                userProfile.username !== (typeof window !== 'undefined' ? (window.localStorage.getItem('username') || '') : '') && (
+                  <div className="mt-16 md:mt-20">
+                    <Link
+                      href={`/community/messages?user=${userProfile.username}`}
+                      className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-all"
+                    >
+                      <FaEnvelope />
+                      Send Message
+                    </Link>
+                  </div>
+                )}
             </div>
 
             {/* Bio */}
@@ -133,22 +168,25 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
               </div>
             )}
 
-            {/* Spotify Playlist */}
-            {userProfile.spotify_playlist && (
+            {/* Social Links */}
+            {Array.isArray(userProfile.social_links) && userProfile.social_links.length > 0 && (
               <div className="mb-8">
-                <div className="flex items-center gap-3 mb-4">
-                  <FaSpotify className="text-green-400 text-2xl" />
-                  <h2 className="text-2xl font-bold text-white">Spotify Playlist</h2>
+                <h2 className="text-2xl font-bold text-white mb-4">Social Links</h2>
+                <div className="flex flex-wrap gap-3">
+                  {userProfile.social_links.map((link: any, idx: number) => (
+                    link && (link.url || link.title) ? (
+                      <a
+                        key={idx}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all"
+                      >
+                        {link.title ? link.title : 'Link'}
+                      </a>
+                    ) : null
+                  ))}
                 </div>
-                <a
-                  href={userProfile.spotify_playlist}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-all"
-                >
-                  <FaSpotify />
-                  Listen on Spotify
-                </a>
               </div>
             )}
           </div>

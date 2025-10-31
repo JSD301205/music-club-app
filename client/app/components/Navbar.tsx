@@ -31,13 +31,13 @@ const Navbar = () => {
   // Only consider user as "logged in" if user exists AND has an id
   const isAuthenticated = !!(user && user.id);
 
-  // Debug logging
-  useEffect(() => {
-    console.log('Navbar - User:', user);
-    console.log('Navbar - Is Authenticated:', isAuthenticated);
-    console.log('Navbar - Loading:', loading);
-    console.log('Navbar - Has Checked Auth:', hasCheckedAuth);
-  }, [user, loading, isAuthenticated, hasCheckedAuth]);
+  // Debug logging - Commented out to prevent exposing user data in production
+  // useEffect(() => {
+  //   console.log('Navbar - User:', user);
+  //   console.log('Navbar - Is Authenticated:', isAuthenticated);
+  //   console.log('Navbar - Loading:', loading);
+  //   console.log('Navbar - Has Checked Auth:', hasCheckedAuth);
+  // }, [user, loading, isAuthenticated, hasCheckedAuth]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,6 +59,7 @@ const Navbar = () => {
     { name: 'Team', href: '/team' },
     { name: 'Gallery', href: '/gallery' },
     { name: 'Community', href: '/community' },
+    { name: 'Jam Board', href: '/jam-board' },
     { name: 'Contact', href: pathname === '/' ? '#contact' : '/#contact' },
   ];
 

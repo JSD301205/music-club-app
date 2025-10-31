@@ -5,12 +5,15 @@ import { createClient } from '@/app/lib/supabase-client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { FaGoogle, FaGithub, FaEnvelope, FaLock, FaUser } from 'react-icons/fa'
+import RoleSelector from './RoleSelector'
+import { UserRole } from '@/app/types/database.types'
 
 export default function SignUpForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [fullName, setFullName] = useState('')
+  const [role, setRole] = useState<UserRole>('member')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -32,11 +35,16 @@ export default function SignUpForm() {
 
     try {
       // Check if username is already taken
-      const { data: existingUser } = await supabase
+      const { data: existingUser, error: checkError } = await supabase
         .from('profiles')
         .select('username')
-        .eq('username', username)
-        .single()
+        .eq('username', username.toLowerCase())
+        .maybeSingle()
+
+      // Only error if it's NOT a "no rows" error
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw checkError
+      }
 
       if (existingUser) {
         setError('Username already taken')
@@ -44,25 +52,75 @@ export default function SignUpForm() {
         return
       }
 
+      // Sign up the user
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            username,
+            username: username.toLowerCase(),
             full_name: fullName,
+            is_profile_complete: false,
+            role: role,
           },
         },
       })
 
       if (error) throw error
 
-      if (data.user) {
-        // Redirect to profile setup
-        router.push('/auth/setup-profile')
+      // Replace the profile creation section in SignUpForm.tsx with this:
+
+    if (data.user) {
+      // Check if profile already exists
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', data.user.id)
+        .maybeSingle()
+
+      // Only create profile if it doesn't exist
+      if (!existingProfile) {
+        const profileData = {
+          id: data.user.id,
+          username: username.toLowerCase(),
+          full_name: fullName,
+          is_profile_complete: false,
+          role: role,
+          is_visible_in_community: role === 'member',
+          allow_messages_from: 'members_only' as const,
+          instruments: [],
+          musical_interests: [],
+        }
+
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert(profileData as any)
+
+        if (profileError) {
+          console.error('Profile creation error:', profileError)
+        }
       }
+
+        // Update user metadata to include role for middleware checks
+      await supabase.auth.updateUser({
+        data: {
+          username: username.toLowerCase(),
+          full_name: fullName,
+          is_profile_complete: false,
+          role: role,
+        },
+      })
+
+      // Redirect to profile setup
+      router.push('/auth/setup-profile')
+    }
     } catch (error: any) {
-      setError(error.message)
+      // Show a user-friendly message if email is not confirmed
+      if (error?.message?.toLowerCase().includes('email not confirmed')) {
+        setError('Verify your email first')
+      } else {
+        setError(error.message || 'An error occurred during signup')
+      }
     } finally {
       setLoading(false)
     }
@@ -126,7 +184,7 @@ export default function SignUpForm() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="appearance-none rounded-lg relative block w-full pl-10 px-3 py-3 border border-gray-600 placeholder-gray-400 text-white bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="Username"
+                  placeholder="Username (cannot be changed later)"
                   minLength={3}
                   maxLength={30}
                   pattern="[a-zA-Z0-9_]+"
@@ -202,6 +260,9 @@ export default function SignUpForm() {
             </div>
           </div>
 
+          {/* Role Selection */}
+          <RoleSelector selectedRole={role} onRoleChange={setRole} />
+
           <div>
             <button
               type="submit"
@@ -224,22 +285,26 @@ export default function SignUpForm() {
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => handleOAuthSignIn('google')}
-              disabled={loading}
-              className="w-full inline-flex justify-center items-center py-3 px-4 border border-gray-600 rounded-lg shadow-sm bg-gray-800/50 text-sm font-medium text-white hover:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              disabled={true}
+              className="relative w-full inline-flex justify-center items-center py-3 px-4 border border-gray-700 rounded-lg shadow-sm bg-gray-800/30 text-sm font-medium text-gray-500 cursor-not-allowed transition-all opacity-60"
             >
               <FaGoogle className="h-5 w-5" />
               <span className="ml-2">Google</span>
+              <span className="absolute -top-2 -right-2 bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full font-semibold">
+                Soon
+              </span>
             </button>
 
             <button
               type="button"
-              onClick={() => handleOAuthSignIn('github')}
-              disabled={loading}
-              className="w-full inline-flex justify-center items-center py-3 px-4 border border-gray-600 rounded-lg shadow-sm bg-gray-800/50 text-sm font-medium text-white hover:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              disabled={true}
+              className="relative w-full inline-flex justify-center items-center py-3 px-4 border border-gray-700 rounded-lg shadow-sm bg-gray-800/30 text-sm font-medium text-gray-500 cursor-not-allowed transition-all opacity-60"
             >
               <FaGithub className="h-5 w-5" />
               <span className="ml-2">GitHub</span>
+              <span className="absolute -top-2 -right-2 bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full font-semibold">
+                Soon
+              </span>
             </button>
           </div>
         </form>

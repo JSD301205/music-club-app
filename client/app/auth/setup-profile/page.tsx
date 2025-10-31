@@ -5,48 +5,69 @@ import { useAuth } from '@/app/contexts/AuthContext'
 import { createClient } from '@/app/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 import { FaGuitar, FaDrum, FaMicrophone, FaMusic, FaHeadphones } from 'react-icons/fa'
+import { INSTRUMENTS, GENRES, BATCH_YEARS } from '@/app/constants/music'
 
-const INSTRUMENTS = [
-  { name: 'Guitar', icon: FaGuitar },
-  { name: 'Drums', icon: FaDrum },
-  { name: 'Vocals', icon: FaMicrophone },
-  { name: 'Piano', icon: FaMusic },
-  { name: 'Bass', icon: FaMusic },
-  { name: 'Keyboard', icon: FaMusic },
-  { name: 'Violin', icon: FaMusic },
-  { name: 'Flute', icon: FaMusic },
-  { name: 'Saxophone', icon: FaMusic },
-  { name: 'DJ/Production', icon: FaHeadphones },
-]
+// Icons mapping for instruments
+const INSTRUMENT_ICONS: Record<string, any> = {
+  'Guitar': FaGuitar,
+  'Drums': FaDrum,
+  'Vocals': FaMicrophone,
+  'Beatboxing': FaMicrophone,
+  'DJ/Production': FaHeadphones,
+  'default': FaMusic
+}
 
-const GENRES = [
-  'Rock', 'Pop', 'Jazz', 'Classical', 'Hip Hop', 'Electronic',
-  'Blues', 'Country', 'R&B', 'Metal', 'Indie', 'Folk',
-  'Carnatic', 'Hindustani', 'Fusion'
-]
-
-const BATCH_YEARS = [2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028]
+const getInstrumentIcon = (instrumentName: string) => {
+  return INSTRUMENT_ICONS[instrumentName] || INSTRUMENT_ICONS['default']
+}
 
 export default function SetupProfilePage() {
-  const { user, profile, refreshProfile } = useAuth()
+  const { user, profile, loading: authLoading, refreshProfile } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
   const [formData, setFormData] = useState({
-    bio: '',
-    instruments: [] as string[],
-    musicalInterests: [] as string[],
-    batchYear: new Date().getFullYear(),
-    spotifyPlaylist: '',
+  bio: '',
+  instruments: [] as string[],
+  musicalInterests: [] as string[],
+  batchYear: new Date().getFullYear(),
+  socialLinks: [{ title: '', url: '' }],
   })
 
+  // Get user role from profile
+  const userRole = profile?.role
+
   useEffect(() => {
-    if (profile?.is_profile_complete) {
-      router.push('/community')
+    // Don't check anything while auth is still loading
+    if (authLoading) return
+    
+    let timer: NodeJS.Timeout
+    
+    // Redirect if no user
+    if (!user) {
+      timer = setTimeout(() => {
+        router.push('/auth/login')
+      }, 200)
     }
-  }, [profile, router])
+    
+    // Redirect if profile is complete (only if user exists)
+    if (user && profile?.is_profile_complete) {
+      timer = setTimeout(() => {
+        router.push('/community')
+      }, 200)
+    }
+    // Prevent enthusiasts from accessing community if profile is not complete
+    if (user && profile?.role === 'enthusiast' && !profile?.is_profile_complete) {
+      // Stay on setup-profile, do not redirect
+      // Optionally, could show a message or force refresh
+    }
+    
+    return () => {
+      if (timer) clearTimeout(timer)
+    }
+  }, [profile, authLoading, router, user])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -61,22 +82,39 @@ export default function SetupProfilePage() {
         instruments: formData.instruments,
         musical_interests: formData.musicalInterests,
         batch_year: formData.batchYear,
-        spotify_playlist: formData.spotifyPlaylist || null,
+        social_links: formData.socialLinks.filter(link => link.url.trim() !== ''),
         is_profile_complete: true,
       }
 
-      const { error } = await supabase
+      // Update profile in database
+      const { error: profileError } = await supabase
         .from('profiles')
         // @ts-ignore - Supabase types use Json type for arrays
         .update(updateData)
         .eq('id', user.id)
 
-      if (error) throw error
+      if (profileError) throw profileError
+
+      // Update user metadata to avoid database calls in middleware
+      const { error: metadataError } = await supabase.auth.updateUser({
+        data: {
+          is_profile_complete: true,
+        },
+      })
+
+      if (metadataError) {
+        console.error('Error updating user metadata:', metadataError)
+        // Don't throw - profile is already updated
+      }
 
       await refreshProfile()
       router.push('/community')
+      // Refresh the page after rerouting to /community
+      setTimeout(() => {
+        window.location.reload()
+      }, 100)
     } catch (error: any) {
-      setError(error.message)
+      setError(error.message || 'An error occurred while updating your profile')
     } finally {
       setLoading(false)
     }
@@ -100,12 +138,28 @@ export default function SetupProfilePage() {
     }))
   }
 
+<<<<<<< HEAD
   useEffect(() => {
     if (!user) router.push('/auth/login')
   }, [user, router])
 
   if (!user) return null
 
+=======
+  // Show loading while auth is initializing
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    )
+  }
+
+  // Show loading if no user (will be handled by useEffect above)
+  if (!user && !authLoading) {
+    return null
+  }
+>>>>>>> 68532371566566965fe34628535acb74cc3c762f
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -117,6 +171,14 @@ export default function SetupProfilePage() {
             </h1>
             <p className="text-gray-300">
               Tell us about your musical journey to connect with fellow musicians
+            </p>
+            <p className="text-gray-400 text-sm mt-2">
+              <span className="text-red-400">*</span> indicates mandatory fields.<br />
+              {userRole === 'enthusiast' ? (
+                <span className="text-xs text-blue-300">For enthusiasts, only Bio, Favorite Genres, and Batch Year are required.</span>
+              ) : (
+                <span className="text-xs text-purple-300">For members, Bio, Instruments, Favorite Genres, and Batch Year are required.</span>
+              )}
             </p>
           </div>
 
@@ -130,7 +192,7 @@ export default function SetupProfilePage() {
             {/* Bio */}
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Bio
+                Bio <span className="text-red-400">*</span>
               </label>
               <textarea
                 value={formData.bio}
@@ -145,17 +207,17 @@ export default function SetupProfilePage() {
             {/* Instruments */}
             <div>
               <label className="block text-sm font-medium text-white mb-4">
-                Instruments You Play
+                Instruments You Play{userRole !== 'enthusiast' && <span className="text-red-400">*</span>}
               </label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {INSTRUMENTS.map((instrument) => {
-                  const Icon = instrument.icon
-                  const isSelected = formData.instruments.includes(instrument.name)
+                  const Icon = getInstrumentIcon(instrument)
+                  const isSelected = formData.instruments.includes(instrument)
                   return (
                     <button
-                      key={instrument.name}
+                      key={instrument}
                       type="button"
-                      onClick={() => toggleInstrument(instrument.name)}
+                      onClick={() => toggleInstrument(instrument)}
                       className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-lg border-2 transition-all ${
                         isSelected
                           ? 'bg-purple-600 border-purple-500 text-white'
@@ -163,7 +225,7 @@ export default function SetupProfilePage() {
                       }`}
                     >
                       <Icon />
-                      <span>{instrument.name}</span>
+                      <span className="text-sm">{instrument}</span>
                     </button>
                   )
                 })}
@@ -173,7 +235,7 @@ export default function SetupProfilePage() {
             {/* Musical Interests */}
             <div>
               <label className="block text-sm font-medium text-white mb-4">
-                Favorite Genres
+                Favorite Genres <span className="text-red-400">*</span>
               </label>
               <div className="flex flex-wrap gap-2">
                 {GENRES.map((genre) => {
@@ -198,8 +260,19 @@ export default function SetupProfilePage() {
 
             {/* Batch Year */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">
-                Batch Year
+              <label className="block text-sm font-medium text-white mb-2 flex items-center gap-2">
+                Batch Year <span className="text-red-400">*</span>
+                <span className="relative group">
+                  <span className="inline-flex items-center cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 hover:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 16v-4m0-4h.01" />
+                    </svg>
+                  </span>
+                  <span className="absolute left-6 top-1 z-10 w-48 bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-300 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    Your batch year is the year you joined the institute (e.g., 2022). This helps us connect you with your peers and alumni.
+                  </span>
+                </span>
               </label>
               <select
                 value={formData.batchYear}
@@ -213,31 +286,78 @@ export default function SetupProfilePage() {
               </select>
             </div>
 
-            {/* Spotify Playlist (Optional) */}
+            {/* Social Links */}
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Spotify Playlist Link (Optional)
+                Social Links (Optional)
               </label>
-              <input
-                type="url"
-                value={formData.spotifyPlaylist}
-                onChange={(e) => setFormData(prev => ({ ...prev, spotifyPlaylist: e.target.value }))}
-                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="https://open.spotify.com/playlist/..."
-              />
+              {Array.isArray(formData.socialLinks) && formData.socialLinks.map((link, idx) => (
+                <div key={idx} className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={typeof link === 'object' && link.title ? link.title : ''}
+                    onChange={e => {
+                      const newLinks = [...formData.socialLinks]
+                      if (typeof newLinks[idx] === 'object') {
+                        newLinks[idx].title = e.target.value
+                      } else {
+                        newLinks[idx] = { title: e.target.value, url: '' }
+                      }
+                      setFormData(prev => ({ ...prev, socialLinks: newLinks }))
+                    }}
+                    className="w-1/3 px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Title (e.g. Spotify, Instagram)"
+                  />
+                  <input
+                    type="url"
+                    value={typeof link === 'object' && link.url ? link.url : ''}
+                    onChange={e => {
+                      const newLinks = [...formData.socialLinks]
+                      if (typeof newLinks[idx] === 'object') {
+                        newLinks[idx].url = e.target.value
+                      } else {
+                        newLinks[idx] = { title: '', url: e.target.value }
+                      }
+                      setFormData(prev => ({ ...prev, socialLinks: newLinks }))
+                    }}
+                    className="w-2/3 px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="https://your-social-link.com"
+                  />
+                  <button
+                    type="button"
+                    className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium"
+                    onClick={() => setFormData(prev => ({ ...prev, socialLinks: prev.socialLinks.filter((_, i) => i !== idx) }))}
+                    disabled={formData.socialLinks.length === 1}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium mt-2"
+                onClick={() => setFormData(prev => ({ ...prev, socialLinks: [...prev.socialLinks, { title: '', url: '' }] }))}
+              >
+                Add Link
+              </button>
             </div>
 
-            <div className="flex justify-end space-x-4">
-              {/* <button
+            <div className="flex justify-between items-center">
+              <button
                 type="button"
                 onClick={() => router.push('/')}
                 className="px-6 py-3 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800/50 transition-all"
               >
                 Skip for now
-              </button> */}
+              </button>
               <button
                 type="submit"
-                disabled={loading || formData.instruments.length === 0 || formData.musicalInterests.length === 0}
+                disabled={
+                  loading ||
+                  formData.musicalInterests.length === 0 ||
+                  (!formData.bio || !formData.batchYear) ||
+                  (userRole !== 'enthusiast' && formData.instruments.length === 0)
+                }
                 className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 {loading ? 'Saving...' : 'Complete Profile'}

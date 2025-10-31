@@ -54,77 +54,94 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Refresh session if expired
-  const { data: { session } } = await supabase.auth.getSession()
+  try {
+    // Refresh session if expired - this updates cookies automatically
+    const { data: { session } } = await supabase.auth.getSession()
 
-  const url = request.nextUrl.clone()
-  
-  // Admin route protection - only allow admin role
-  if (url.pathname.startsWith('/admin')) {
-    if (!session?.user) {
-      // Not logged in, redirect to login
+    const url = request.nextUrl.clone()
+    
+    // Admin route protection - only allow admin role
+    if (url.pathname.startsWith('/admin')) {
+      if (!session?.user) {
+        // Not logged in, redirect to login
+        url.pathname = '/auth/login'
+        return NextResponse.redirect(url)
+      }
+      
+      // Get user metadata for role check (avoid database call)
+      const userRole = session.user.user_metadata?.role || 
+                       session.user.app_metadata?.role
+      
+      // If role not in metadata, check database as fallback
+      if (!userRole) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single()
+        
+        if (!profile || profile.role !== 'admin') {
+          url.pathname = '/'
+          return NextResponse.redirect(url)
+        }
+      } else if (userRole !== 'admin') {
+        url.pathname = '/'
+        return NextResponse.redirect(url)
+      }
+    }
+    
+    // Protected routes that require authentication
+    const protectedRoutes = ['/community', '/settings', '/jam-board']
+    const isProtectedRoute = protectedRoutes.some(route => url.pathname.startsWith(route))
+    
+    // If trying to access protected route without session, redirect to login
+    if (isProtectedRoute && !session?.user) {
       url.pathname = '/auth/login'
       return NextResponse.redirect(url)
     }
     
-    // Check if user has admin role
-    // @ts-ignore - Supabase types
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .single()
-    
-    const userProfile = profile as any
-    
-    if (!userProfile || userProfile.role !== 'admin') {
-      // Not admin, redirect to home
-      url.pathname = '/'
-      return NextResponse.redirect(url)
+    // If user is logged in and trying to access protected routes, check profile completion
+    if (session?.user && isProtectedRoute) {
+      // Always check is_profile_complete from database
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_profile_complete')
+        .eq('id', session.user.id)
+        .single()
+      // If no profile or profile not complete, redirect to setup
+      if (!profile || !profile.is_profile_complete) {
+        url.pathname = '/auth/setup-profile'
+        return NextResponse.redirect(url)
+      }
     }
-  }
-  
-  // Protected routes that require a complete profile
-  const protectedRoutes = ['/community', '/settings']
-  const isProtectedRoute = protectedRoutes.some(route => url.pathname.startsWith(route))
-  
-  // If user is logged in and trying to access protected routes
-  if (session?.user && isProtectedRoute) {
-    // Check if profile is complete
-    // @ts-ignore - Supabase types
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('is_profile_complete')
-      .eq('id', session.user.id)
-      .single()
-    
-    const userProfile = profile as any
-    
-    // If no profile or profile not complete, redirect to setup
-    if (!userProfile || !userProfile.is_profile_complete) {
-      url.pathname = '/auth/setup-profile'
-      return NextResponse.redirect(url)
-    }
-  }
 
-  // If user is logged in with complete profile and tries to access auth pages, redirect to community
-  if (session?.user && (url.pathname.startsWith('/auth/login') || url.pathname.startsWith('/auth/signup'))) {
-    // @ts-ignore - Supabase types
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('is_profile_complete')
-      .eq('id', session.user.id)
-      .single()
-    
-    const userProfile = profile as any
-    
-    if (userProfile?.is_profile_complete) {
-      url.pathname = '/community'
+    // If user is logged in and tries to access auth pages (login/signup), redirect appropriately
+    if (session?.user && (url.pathname.startsWith('/auth/login') || url.pathname.startsWith('/auth/signup'))) {
+      // Check if profile is complete
+      const isProfileComplete = session.user.user_metadata?.is_profile_complete
+      
+      if (isProfileComplete === undefined) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_profile_complete')
+          .eq('id', session.user.id)
+          .single()
+        
+        // Redirect to setup if profile not complete, otherwise to community
+        url.pathname = profile?.is_profile_complete ? '/community' : '/auth/setup-profile'
+      } else {
+        url.pathname = isProfileComplete ? '/community' : '/auth/setup-profile'
+      }
+      
       return NextResponse.redirect(url)
     }
-  }
 
-  return response
+    return response
+  } catch (error) {
+    console.error('Middleware error:', error)
+    // On error, let the request through - client-side will handle auth
+    return response
+  }
 }
 
 export const config = {

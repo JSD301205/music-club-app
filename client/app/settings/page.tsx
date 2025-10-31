@@ -5,39 +5,35 @@ import { useAuth } from '@/app/contexts/AuthContext'
 import { createClient } from '@/app/lib/supabase-client'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { FaSave, FaUser, FaLock, FaTrash } from 'react-icons/fa'
-
-const INSTRUMENTS = [
-  'Guitar', 'Drums', 'Vocals', 'Piano', 'Bass', 'Keyboard',
-  'Violin', 'Flute', 'Saxophone', 'DJ/Production'
-]
-
-const GENRES = [
-  'Rock', 'Pop', 'Jazz', 'Classical', 'Hip Hop', 'Electronic',
-  'Blues', 'Country', 'R&B', 'Metal', 'Indie', 'Folk',
-  'Carnatic', 'Hindustani', 'Fusion'
-]
-
-const BATCH_YEARS = [2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028]
+import { FaSave, FaUser, FaLock, FaTrash, FaEye, FaEyeSlash, FaEnvelope, FaShieldAlt } from 'react-icons/fa'
+import { INSTRUMENTS, GENRES, BATCH_YEARS } from '@/app/constants/music'
+import ImageUpload from '@/app/components/ui/ImageUpload'
+import { UserRole, MessagePermission } from '@/app/types/database.types'
 
 export default function SettingsPage() {
   const { user, profile, refreshProfile, signOut, loading: authLoading } = useAuth()
   const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
   const [formData, setFormData] = useState({
-    username: '',
     fullName: '',
     bio: '',
     instruments: [] as string[],
     musicalInterests: [] as string[],
     batchYear: new Date().getFullYear(),
-    spotifyPlaylist: '',
+    socialLinks: [{ title: '', url: '' }],
     avatarUrl: '',
+    role: 'member' as UserRole,
+    isVisibleInCommunity: true,
+    allowMessagesFrom: 'members_only' as MessagePermission,
+    emailNotificationsEnabled: true,
   })
+  
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -48,17 +44,57 @@ export default function SettingsPage() {
   useEffect(() => {
     if (profile) {
       setFormData({
-        username: profile.username,
         fullName: profile.full_name || '',
         bio: profile.bio || '',
         instruments: (profile.instruments as string[]) || [],
         musicalInterests: (profile.musical_interests as string[]) || [],
         batchYear: profile.batch_year || new Date().getFullYear(),
-        spotifyPlaylist: profile.spotify_playlist || '',
+        socialLinks: Array.isArray((profile as any).social_links) && (profile as any).social_links.length > 0
+          ? (profile as any).social_links.map((link: any) =>
+              typeof link === 'object' && link !== null
+                ? { title: link.title || '', url: link.url || '' }
+                : { title: '', url: link || '' }
+            )
+          : [{ title: '', url: '' }],
         avatarUrl: profile.avatar_url || '',
+        role: profile.role || 'member',
+        isVisibleInCommunity: profile.is_visible_in_community ?? true,
+        allowMessagesFrom: profile.allow_messages_from || 'members_only',
+        emailNotificationsEnabled: (profile as any).email_notifications_enabled ?? true,
       })
     }
   }, [profile])
+
+  const uploadAvatar = async (file: File): Promise<string> => {
+    if (!user) throw new Error('No user found')
+
+    // Delete old avatar if exists
+    if (formData.avatarUrl && formData.avatarUrl.includes('supabase')) {
+      const oldPath = formData.avatarUrl.split('/').pop()
+      if (oldPath) {
+        await supabase.storage.from('avatars').remove([`${user.id}/${oldPath}`])
+      }
+    }
+
+    // Upload new avatar
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Date.now()}.${fileExt}`
+    const filePath = `${user.id}/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      })
+
+    if (uploadError) throw uploadError
+
+    // Get public URL
+    const { data } = supabase.storage.from('avatars').getPublicUrl(filePath)
+
+    return data.publicUrl
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -69,17 +105,30 @@ export default function SettingsPage() {
     try {
       if (!user) throw new Error('No user found')
 
+      let avatarUrl = formData.avatarUrl
+
+      // Upload new avatar if file selected
+      if (avatarFile) {
+        setUploading(true)
+        avatarUrl = await uploadAvatar(avatarFile)
+        setAvatarFile(null)
+        setUploading(false)
+      }
+
       const { error } = await (supabase
         .from('profiles') as any)
         .update({
-          username: formData.username,
           full_name: formData.fullName,
           bio: formData.bio,
           instruments: formData.instruments,
           musical_interests: formData.musicalInterests,
           batch_year: formData.batchYear,
-          spotify_playlist: formData.spotifyPlaylist || null,
-          avatar_url: formData.avatarUrl || null,
+          social_links: formData.socialLinks.filter(link => link.title.trim() !== '' || link.url.trim() !== ''),
+          avatar_url: avatarUrl || null,
+          role: formData.role,
+          is_visible_in_community: formData.isVisibleInCommunity,
+          allow_messages_from: formData.allowMessagesFrom,
+          email_notifications_enabled: formData.emailNotificationsEnabled,
         })
         .eq('id', user.id)
 
@@ -92,7 +141,20 @@ export default function SettingsPage() {
       setError(error.message)
     } finally {
       setLoading(false)
+      setUploading(false)
     }
+  }
+
+  const handleImageChange = (file: File) => {
+    setAvatarFile(file)
+    // Create temporary preview URL
+    const previewUrl = URL.createObjectURL(file)
+    setFormData(prev => ({ ...prev, avatarUrl: previewUrl }))
+  }
+
+  const handleRemoveImage = () => {
+    setAvatarFile(null)
+    setFormData(prev => ({ ...prev, avatarUrl: '' }))
   }
 
   const toggleInstrument = (instrument: string) => {
@@ -125,6 +187,10 @@ export default function SettingsPage() {
       // Sign out
       await signOut()
       router.push('/')
+      // Reload to ensure auth state is cleared
+      setTimeout(() => {
+        window.location.reload()
+      }, 600)
     } catch (error: any) {
       setError(error.message)
     }
@@ -163,70 +229,26 @@ export default function SettingsPage() {
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Profile Picture */}
-            <div>
-              <label className="block text-sm font-medium text-white mb-4">
-                Profile Picture
-              </label>
-              <div className="flex items-center gap-6">
-                {formData.avatarUrl ? (
-                  <Image
-                    src={formData.avatarUrl}
-                    alt="Profile"
-                    width={100}
-                    height={100}
-                    className="rounded-full border-4 border-purple-500"
-                  />
-                ) : (
-                  <div className="w-24 h-24 rounded-full bg-purple-600 flex items-center justify-center border-4 border-purple-500">
-                    <span className="text-white text-3xl font-bold">
-                      {formData.username.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
-                <div className="flex-1">
-                  <input
-                    type="url"
-                    value={formData.avatarUrl}
-                    onChange={(e) => setFormData(prev => ({ ...prev, avatarUrl: e.target.value }))}
-                    className="w-full px-4 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Avatar URL (e.g., https://...)"
-                  />
-                  <p className="text-gray-400 text-sm mt-2">
-                    Paste a URL to your profile picture
-                  </p>
-                </div>
-              </div>
-            </div>
+            <ImageUpload
+              currentImage={formData.avatarUrl}
+              onImageChange={handleImageChange}
+              onRemove={handleRemoveImage}
+              username={profile?.username || ''}
+            />
 
             {/* Basic Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-white mb-2">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  required
-                  minLength={3}
-                  maxLength={30}
-                />
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-white mb-2">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.fullName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  required
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">
+                Full Name
+              </label>
+              <input
+                type="text"
+                value={formData.fullName}
+                onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                required
+              />
             </div>
 
             {/* Bio */}
@@ -297,8 +319,19 @@ export default function SettingsPage() {
 
             {/* Batch Year */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">
+              <label className="block text-sm font-medium text-white mb-2 flex items-center gap-2">
                 Batch Year
+                <span className="relative group">
+                  <span className="inline-flex items-center cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 hover:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 16v-4m0-4h.01" />
+                    </svg>
+                  </span>
+                  <span className="absolute left-6 top-1 z-10 w-48 bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-300 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    Your batch year is the year you joined the institute (e.g., 2022). This helps us connect you with your peers and alumni.
+                  </span>
+                </span>
               </label>
               <select
                 value={formData.batchYear}
@@ -314,26 +347,218 @@ export default function SettingsPage() {
             {/* Spotify Playlist */}
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                Spotify Playlist (Optional)
+                Social Links (Optional)
               </label>
-              <input
-                type="url"
-                value={formData.spotifyPlaylist}
-                onChange={(e) => setFormData(prev => ({ ...prev, spotifyPlaylist: e.target.value }))}
-                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="https://open.spotify.com/playlist/..."
-              />
+              {Array.isArray(formData.socialLinks) && formData.socialLinks.map((link, idx) => (
+                <div key={idx} className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={typeof link === 'object' && link.title ? link.title : ''}
+                    onChange={e => {
+                      const newLinks = [...formData.socialLinks]
+                      if (typeof newLinks[idx] === 'object') {
+                        newLinks[idx].title = e.target.value
+                      } else {
+                        newLinks[idx] = { title: e.target.value, url: '' }
+                      }
+                      setFormData(prev => ({ ...prev, socialLinks: newLinks }))
+                    }}
+                    className="w-1/3 px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Title (e.g. Spotify, Instagram)"
+                  />
+                  <input
+                    type="url"
+                    value={typeof link === 'object' && link.url ? link.url : ''}
+                    onChange={e => {
+                      const newLinks = [...formData.socialLinks]
+                      if (typeof newLinks[idx] === 'object') {
+                        newLinks[idx].url = e.target.value
+                      } else {
+                        newLinks[idx] = { title: '', url: e.target.value }
+                      }
+                      setFormData(prev => ({ ...prev, socialLinks: newLinks }))
+                    }}
+                    className="w-2/3 px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="https://your-social-link.com"
+                  />
+                  <button
+                    type="button"
+                    className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium"
+                    onClick={() => setFormData(prev => ({ ...prev, socialLinks: prev.socialLinks.filter((_, i) => i !== idx) }))}
+                    disabled={formData.socialLinks.length === 1}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium mt-2"
+                onClick={() => setFormData(prev => ({ ...prev, socialLinks: [...prev.socialLinks, { title: '', url: '' }] }))}
+              >
+                Add Link
+              </button>
+            </div>
+
+            {/* Privacy & Role Settings */}
+            <div className="border-t border-gray-700 pt-8">
+              <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                <FaShieldAlt />
+                Privacy & Role Settings
+              </h2>
+
+              {/* Current Role Display */}
+              <div className="mb-6 p-4 bg-purple-600/20 border border-purple-500 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white font-medium">Your Role</p>
+                    <p className="text-gray-300 text-sm">
+                      You are currently a <span className="font-bold">
+                        {formData.role === 'admin'
+                          ? '🛡️ Admin'
+                          : formData.role === 'member'
+                          ? '🎸 Member'
+                          : formData.role === 'alumni'
+                          ? '🎓 Alumni'
+                          : '❤️ Enthusiast'}
+                      </span>
+                    </p>
+                  </div>
+                  {formData.role === 'enthusiast' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm('Are you a musician? Upgrading to Member will make you visible in the community and allow you to post on the jam board.')) {
+                          setFormData(prev => ({ ...prev, role: 'member', isVisibleInCommunity: true }))
+                        }
+                      }}
+                      className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all"
+                    >
+                      Upgrade to Member
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Community Visibility */}
+              <div className="mb-6">
+                <label className="flex items-center justify-between p-4 bg-gray-800/50 border border-gray-600 rounded-lg cursor-pointer hover:border-purple-500 transition-all">
+                  <div className="flex items-center gap-3">
+                    {formData.isVisibleInCommunity ? (
+                      <FaEye className="text-green-400 text-xl" />
+                    ) : (
+                      <FaEyeSlash className="text-gray-400 text-xl" />
+                    )}
+                    <div>
+                      <p className="text-white font-medium">Visible in Community</p>
+                      <p className="text-gray-400 text-sm">
+                        {formData.isVisibleInCommunity 
+                          ? 'Your profile appears in the community directory'
+                          : 'Your profile is hidden from the community directory'}
+                      </p>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={formData.isVisibleInCommunity}
+                    onChange={(e) => setFormData(prev => ({ ...prev, isVisibleInCommunity: e.target.checked }))}
+                    className="w-6 h-6 text-purple-600 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
+                  />
+                </label>
+                {formData.role === 'enthusiast' && !formData.isVisibleInCommunity && (
+                  <p className="text-gray-400 text-xs mt-2 ml-4">
+                    💡 As an enthusiast, hiding your profile is recommended
+                  </p>
+                )}
+              </div>
+
+              {/* Message Permissions */}
+              <div>
+                <label className="block text-sm font-medium text-white mb-3 flex items-center gap-2">
+                  <FaEnvelope />
+                  Who can message you?
+                </label>
+                <div className="space-y-3">
+                  <label className="flex items-center p-4 bg-gray-800/50 border border-gray-600 rounded-lg cursor-pointer hover:border-purple-500 transition-all">
+                    <input
+                      type="radio"
+                      name="messagePermission"
+                      value="everyone"
+                      checked={formData.allowMessagesFrom === 'everyone'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, allowMessagesFrom: e.target.value as MessagePermission }))}
+                      className="w-5 h-5 text-purple-600 border-gray-600 focus:ring-purple-500 focus:ring-2"
+                    />
+                    <div className="ml-3">
+                      <p className="text-white font-medium">Everyone</p>
+                      <p className="text-gray-400 text-sm">All users can send you messages</p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center p-4 bg-gray-800/50 border border-gray-600 rounded-lg cursor-pointer hover:border-purple-500 transition-all">
+                    <input
+                      type="radio"
+                      name="messagePermission"
+                      value="members_only"
+                      checked={formData.allowMessagesFrom === 'members_only'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, allowMessagesFrom: e.target.value as MessagePermission }))}
+                      className="w-5 h-5 text-purple-600 border-gray-600 focus:ring-purple-500 focus:ring-2"
+                    />
+                    <div className="ml-3">
+                      <p className="text-white font-medium">Members Only (Recommended)</p>
+                      <p className="text-gray-400 text-sm">Only verified musicians can message you directly</p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center p-4 bg-gray-800/50 border border-gray-600 rounded-lg cursor-pointer hover:border-purple-500 transition-all">
+                    <input
+                      type="radio"
+                      name="messagePermission"
+                      value="no_one"
+                      checked={formData.allowMessagesFrom === 'no_one'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, allowMessagesFrom: e.target.value as MessagePermission }))}
+                      className="w-5 h-5 text-purple-600 border-gray-600 focus:ring-purple-500 focus:ring-2"
+                    />
+                    <div className="ml-3">
+                      <p className="text-white font-medium">No One</p>
+                      <p className="text-gray-400 text-sm">Disable all incoming messages</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Email Notifications */}
+              <div className="mt-6">
+                <label className="flex items-center justify-between p-4 bg-gray-800/50 border border-gray-600 rounded-lg cursor-pointer hover:border-purple-500 transition-all">
+                  <div className="flex items-center gap-3">
+                    <FaEnvelope className={`text-xl ${formData.emailNotificationsEnabled ? 'text-blue-400' : 'text-gray-400'}`} />
+                    <div>
+                      <p className="text-white font-medium">Email Notifications</p>
+                      <p className="text-gray-400 text-sm">
+                        {formData.emailNotificationsEnabled
+                          ? 'Receive emails when you get new messages'
+                          : 'Email notifications are disabled'}
+                      </p>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={formData.emailNotificationsEnabled}
+                    onChange={(e) => setFormData(prev => ({ ...prev, emailNotificationsEnabled: e.target.checked }))}
+                    className="w-6 h-6 text-purple-600 border-gray-600 rounded focus:ring-purple-500 focus:ring-2"
+                  />
+                </label>
+              </div>
             </div>
 
             {/* Save Button */}
             <div className="flex justify-between items-center pt-6 border-t border-gray-700">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || uploading}
                 className="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
               >
                 <FaSave />
-                {loading ? 'Saving...' : 'Save Changes'}
+                {uploading ? 'Uploading image...' : loading ? 'Saving...' : 'Save Changes'}
               </button>
 
               <button

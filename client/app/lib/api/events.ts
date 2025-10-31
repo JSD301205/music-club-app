@@ -1,6 +1,8 @@
-import { supabase, Event } from '../supabase';
+import { createClient } from '../supabase-client';
+import { Event } from '../supabase';
 
 export async function getEvents(year: number, status?: 'past' | 'upcoming') {
+  const supabase = createClient();
   let query = supabase
     .from('events')
     .select('*')
@@ -22,6 +24,7 @@ export async function getEvents(year: number, status?: 'past' | 'upcoming') {
 }
 
 export async function createEvent(event: Omit<Event, 'id' | 'created_at' | 'updated_at'>) {
+  const supabase = createClient();
   const { data, error } = await (supabase
     .from('events') as any)
     .insert([event])
@@ -37,6 +40,7 @@ export async function createEvent(event: Omit<Event, 'id' | 'created_at' | 'upda
 }
 
 export async function updateEvent(id: number, updates: Partial<Event>) {
+  const supabase = createClient();
   const { data, error } = await (supabase
     .from('events') as any)
     .update(updates)
@@ -53,6 +57,7 @@ export async function updateEvent(id: number, updates: Partial<Event>) {
 }
 
 export async function deleteEvent(id: number) {
+  const supabase = createClient();
   const { error } = await supabase
     .from('events')
     .delete()
@@ -65,6 +70,7 @@ export async function deleteEvent(id: number) {
 }
 
 export async function uploadEventImage(file: File): Promise<string> {
+  const supabase = createClient();
   const fileExt = file.name.split('.').pop();
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
   const filePath = `${fileName}`;

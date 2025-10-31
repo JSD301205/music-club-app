@@ -1,6 +1,7 @@
-import { supabase } from '../supabase';
+import { createClient } from '../supabase-client';
 
 export async function signInWithEmail(email: string, password: string) {
+  const supabase = createClient();
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -15,6 +16,7 @@ export async function signInWithEmail(email: string, password: string) {
 }
 
 export async function signOut() {
+  const supabase = createClient();
   const { error } = await supabase.auth.signOut();
 
   if (error) {
@@ -24,6 +26,7 @@ export async function signOut() {
 }
 
 export async function getCurrentUser() {
+  const supabase = createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
 
   if (error) {
@@ -35,6 +38,7 @@ export async function getCurrentUser() {
 }
 
 export async function checkIsAuthenticated() {
+  const supabase = createClient();
   const { data: { session } } = await supabase.auth.getSession();
   return !!session;
 }

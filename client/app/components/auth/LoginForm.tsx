@@ -10,11 +10,14 @@ export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [needsProfileSetup, setNeedsProfileSetup] = useState(false)
+  const [showRefreshMessage, setShowRefreshMessage] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
 
+<<<<<<< HEAD
   // Check for error in URL params (from failed OAuth)
   useEffect(() => {
     const errorParam = searchParams.get('error')
@@ -22,11 +25,26 @@ export default function LoginForm() {
       setError('Authentication failed. Please try again.')
     }
   }, [searchParams])
+=======
+  // Show refresh message after 1.5 seconds if profile setup is needed and still loading
+  useEffect(() => {
+    if (loading && needsProfileSetup) {
+      const timer = setTimeout(() => {
+        setShowRefreshMessage(true)
+      }, 1500)
+      return () => clearTimeout(timer)
+    } else {
+      setShowRefreshMessage(false)
+    }
+  }, [loading, needsProfileSetup])
+>>>>>>> 68532371566566965fe34628535acb74cc3c762f
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
+    setNeedsProfileSetup(false)
+    setShowRefreshMessage(false)
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -37,29 +55,46 @@ export default function LoginForm() {
       if (error) throw error
 
       if (data.user) {
-        // Check if profile exists
-        // @ts-ignore - Supabase types
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('is_profile_complete')
-          .eq('id', data.user.id)
-          .single()
+        // Check profile completion status from user metadata first
+        const isProfileComplete = data.user.user_metadata?.is_profile_complete
 
-        // Cast to any to avoid type errors
-        const profile = profileData as any
+        if (isProfileComplete === false || isProfileComplete === undefined) {
+          // Need to check database if not in metadata
+          // @ts-ignore - Supabase type inference
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('is_profile_complete')
+            .eq('id', data.user.id)
+            .single()
 
-        // If no profile or profile not complete, redirect to setup
-        if (!profile || !profile.is_profile_complete) {
-          router.push('/auth/setup-profile')
-        } else {
-          router.push('/community')
+          const profile = profileData as any
+          if (!profile || !profile.is_profile_complete) {
+            setNeedsProfileSetup(true)
+            router.refresh()
+            // Delay to ensure auth state is synced and give time for refresh message to appear
+            setTimeout(() => {
+              router.push('/auth/setup-profile')
+              // Refresh the page only once after redirecting (reduced delay)
+              setTimeout(() => {
+                window.location.reload()
+              }, 100)
+            }, 500)
+            return
+          }
         }
+
+        // Profile is complete, go to community
+        router.push('/community')
         router.refresh()
+        // Reload to ensure auth state is synced
+        setTimeout(() => {
+          window.location.reload()
+        }, 500)
       }
     } catch (error: any) {
-      setError(error.message)
-    } finally {
+      setError(error.message || 'Invalid email or password')
       setLoading(false)
+      setNeedsProfileSetup(false)
     }
   }
 
@@ -168,6 +203,20 @@ export default function LoginForm() {
             </button>
           </div>
 
+          {showRefreshMessage && needsProfileSetup && loading && (
+            <div className="bg-blue-500/20 border border-blue-500 text-blue-100 px-4 py-3 rounded-lg text-sm">
+              <p className="font-medium mb-2">Setting up your profile...</p>
+              <p className="mb-2">If you're not redirected automatically, please refresh the page to complete your profile setup.</p>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Refresh Page
+              </button>
+            </div>
+          )}
+
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-600"></div>
@@ -180,19 +229,20 @@ export default function LoginForm() {
           <div className="mt-4">
             <button
               type="button"
-              onClick={() => handleOAuthSignIn('google')}
-              disabled={loading}
-              className="w-full inline-flex justify-center items-center py-3 px-4 border border-gray-600 rounded-lg shadow-sm bg-gray-800/50 text-sm font-medium text-white hover:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              disabled={true}
+              className="relative w-full inline-flex justify-center items-center py-3 px-4 border border-gray-700 rounded-lg shadow-sm bg-gray-800/30 text-sm font-medium text-gray-500 cursor-not-allowed transition-all opacity-60"
             >
               <FaGoogle className="h-5 w-5" />
               <span className="ml-2">Google</span>
+              <span className="absolute -top-2 -right-2 bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full font-semibold">
+                Soon
+              </span>
             </button>
 
             {/* <button
               type="button"
-              onClick={() => handleOAuthSignIn('github')}
-              disabled={loading}
-              className="w-full inline-flex justify-center items-center py-3 px-4 border border-gray-600 rounded-lg shadow-sm bg-gray-800/50 text-sm font-medium text-white hover:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              disabled={true}
+              className="relative w-full inline-flex justify-center items-center py-3 px-4 border border-gray-700 rounded-lg shadow-sm bg-gray-800/30 text-sm font-medium text-gray-500 cursor-not-allowed transition-all opacity-60"
             >
               <FaGithub className="h-5 w-5" />
               <span className="ml-2">GitHub</span>
