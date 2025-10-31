@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/app/lib/supabase-client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { FaGoogle, FaGithub, FaEnvelope, FaLock, FaUser } from 'react-icons/fa'
+import { FaGoogle, FaEnvelope, FaLock, FaUser } from 'react-icons/fa'
 import RoleSelector from './RoleSelector'
 import { UserRole } from '@/app/types/database.types'
 
@@ -22,9 +22,11 @@ export default function SignUpForm() {
 
   // Check for error in URL params (from failed OAuth)
   useEffect(() => {
-    const errorParam = searchParams.get('error')
-    if (errorParam === 'auth_failed') {
-      setError('Authentication failed. Please try again.')
+    if (typeof window !== 'undefined') {
+      const errorParam = searchParams.get('error')
+      if (errorParam === 'auth_failed') {
+        setError('Authentication failed. Please try again.')
+      }
     }
   }, [searchParams])
 
@@ -126,7 +128,7 @@ export default function SignUpForm() {
     }
   }
 
-  const handleOAuthSignIn = async (provider: 'google' | 'github') => {
+  const handleOAuthSignIn = async (provider: 'google') => {
     setLoading(true)
     setError(null)
 
@@ -282,29 +284,15 @@ export default function SignUpForm() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="mt-4">
             <button
               type="button"
-              disabled={true}
-              className="relative w-full inline-flex justify-center items-center py-3 px-4 border border-gray-700 rounded-lg shadow-sm bg-gray-800/30 text-sm font-medium text-gray-500 cursor-not-allowed transition-all opacity-60"
+              onClick={() => handleOAuthSignIn('google')}
+              disabled={loading}
+              className="w-full inline-flex justify-center items-center py-3 px-4 border border-gray-600 rounded-lg shadow-sm bg-gray-800/50 text-sm font-medium text-white hover:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               <FaGoogle className="h-5 w-5" />
-              <span className="ml-2">Google</span>
-              <span className="absolute -top-2 -right-2 bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full font-semibold">
-                Soon
-              </span>
-            </button>
-
-            <button
-              type="button"
-              disabled={true}
-              className="relative w-full inline-flex justify-center items-center py-3 px-4 border border-gray-700 rounded-lg shadow-sm bg-gray-800/30 text-sm font-medium text-gray-500 cursor-not-allowed transition-all opacity-60"
-            >
-              <FaGithub className="h-5 w-5" />
-              <span className="ml-2">GitHub</span>
-              <span className="absolute -top-2 -right-2 bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full font-semibold">
-                Soon
-              </span>
+              <span className="ml-2">Sign up with Google</span>
             </button>
           </div>
         </form>
