@@ -8,7 +8,6 @@
 
 The official website for the Music Club of IIITDM Kancheepuram, built with modern web technologies to showcase club activities, events, and member information.
 
-
 ## 🚀 Features
 
 ### Core Features
