@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { merakiBands } from '../../data/bands';
 import AnimatedSection from '../../components/layout/AnimatedSection';
 
-
 export default function BandsPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
