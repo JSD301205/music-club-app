@@ -138,14 +138,12 @@ export default function SetupProfilePage() {
     }))
   }
 
-<<<<<<< HEAD
   useEffect(() => {
     if (!user) router.push('/auth/login')
   }, [user, router])
 
   if (!user) return null
 
-=======
   // Show loading while auth is initializing
   if (authLoading) {
     return (
@@ -159,7 +157,6 @@ export default function SetupProfilePage() {
   if (!user && !authLoading) {
     return null
   }
->>>>>>> 68532371566566965fe34628535acb74cc3c762f
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-gray-900 py-12 px-4 sm:px-6 lg:px-8">
