@@ -19,10 +19,16 @@ export default function LoginForm() {
 
 
   // Check for error in URL params (from failed OAuth)
+
+  
+
   useEffect(() => {
-    const errorParam = searchParams.get('error')
-    if (errorParam === 'auth_failed') {
-      setError('Authentication failed. Please try again.')
+    // This will only run on the client side
+    if (typeof window !== 'undefined') {
+      const errorParam = searchParams.get('error')
+      if (errorParam === 'auth_failed') {
+        setError('Authentication failed. Please try again.')
+      }
     }
   }, [searchParams])
   // Show refresh message after 1.5 seconds if profile setup is needed and still loading
@@ -96,7 +102,7 @@ export default function LoginForm() {
     }
   }
 
-  const handleOAuthSignIn = async (provider: 'google' | 'github') => {
+  const handleOAuthSignIn = async (provider: 'google') => {
     setLoading(true)
     setError(null)
 

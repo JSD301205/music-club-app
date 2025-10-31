@@ -24,6 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
 
   const fetchProfile = async (userId: string) => {
+    if (!userId) return
     try {
       // @ts-ignore - Supabase types
       const { data, error } = await supabase
@@ -58,6 +59,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await fetchProfile(user.id)
     }
   }
+
+  
 
   useEffect(() => {
     // Safety timeout to ensure loading doesn't stay true forever
