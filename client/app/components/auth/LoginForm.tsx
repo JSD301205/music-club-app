@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/app/lib/supabase-client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { FaGoogle, FaGithub, FaEnvelope, FaLock } from 'react-icons/fa'
 
@@ -12,7 +12,16 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
+
+  // Check for error in URL params (from failed OAuth)
+  useEffect(() => {
+    const errorParam = searchParams.get('error')
+    if (errorParam === 'auth_failed') {
+      setError('Authentication failed. Please try again.')
+    }
+  }, [searchParams])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -168,7 +177,7 @@ export default function LoginForm() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="mt-4">
             <button
               type="button"
               onClick={() => handleOAuthSignIn('google')}
@@ -179,7 +188,7 @@ export default function LoginForm() {
               <span className="ml-2">Google</span>
             </button>
 
-            <button
+            {/* <button
               type="button"
               onClick={() => handleOAuthSignIn('github')}
               disabled={loading}
@@ -187,7 +196,7 @@ export default function LoginForm() {
             >
               <FaGithub className="h-5 w-5" />
               <span className="ml-2">GitHub</span>
-            </button>
+            </button> */}
           </div>
         </form>
       </div>
