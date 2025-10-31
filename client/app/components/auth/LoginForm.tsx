@@ -17,7 +17,7 @@ export default function LoginForm() {
   const searchParams = useSearchParams()
   const supabase = createClient()
 
-<<<<<<< HEAD
+
   // Check for error in URL params (from failed OAuth)
   useEffect(() => {
     const errorParam = searchParams.get('error')
@@ -25,7 +25,6 @@ export default function LoginForm() {
       setError('Authentication failed. Please try again.')
     }
   }, [searchParams])
-=======
   // Show refresh message after 1.5 seconds if profile setup is needed and still loading
   useEffect(() => {
     if (loading && needsProfileSetup) {
@@ -37,7 +36,6 @@ export default function LoginForm() {
       setShowRefreshMessage(false)
     }
   }, [loading, needsProfileSetup])
->>>>>>> 68532371566566965fe34628535acb74cc3c762f
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
