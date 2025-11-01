@@ -3,12 +3,25 @@
 [![Next.js](https://img.shields.io/badge/Next.js-13+-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-18-blue?style=for-the-badge&logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.2-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Latest-green?style=for-the-badge&logo=supabase)](https://supabase.com/)
 [![Firebase](https://img.shields.io/badge/Firebase-11.6-orange?style=for-the-badge&logo=firebase)](https://firebase.google.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.3-blue?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 
 The official website for the Music Club of IIITDM Kancheepuram, built with modern web technologies to showcase club activities, events, and member information.
 
 ## 🚀 Features
+
+### Quick Links
+- 🏠 [Homepage](/) - Interactive landing page
+- 📅 [Events](/events) - Upcoming and past events
+- 🖼️ [Gallery](/gallery) - Photo galleries from events
+- 👥 [Team](/team) - Meet the club members
+- 🗂️ [Community](/community) - Member directory and messaging
+- 🎸 [Jam Board](/jam-board) - Find musicians and jam sessions
+- 📚 [Resources](/resources) - Learning materials library
+- 💬 [Messages](/community/messages) - DMs and Global Chat
+- ⚙️ [Settings](/settings) - Profile and preferences
+- 🔐 [Admin](/admin) - Content management (admin only)
 
 ### Core Features
 - 🎵 **Interactive Homepage** with animated sections and modern UI
@@ -21,11 +34,14 @@ The official website for the Music Club of IIITDM Kancheepuram, built with moder
 - 📝 **Profile Completion Enforcement** (required for community/jam-board)
 - 💬 **Group Chat & Direct Messaging** (with profile-based restrictions)
 - 📧 **Password Reset & Email Verification**
-- �️ **Avatar Upload & Cropping**
+- 🖼️ **Avatar Upload & Cropping**
 - 🏷️ **Event & Gallery Management**
 - 🏆 **Jam Board** for collaborative posts
 - 🗂️ **Community Directory** with role badges
 - 🛠️ **Admin Tools** for gallery/events
+- 📚 **Music Resource Library** with categorized learning materials
+- 🌐 **Global Chat** with real-time messaging and profanity filter
+- 📎 **File Sharing** in messages (images, audio, documents)
 
 ### Sections
 1. **Hero Section**
@@ -84,6 +100,35 @@ The official website for the Music Club of IIITDM Kancheepuram, built with moder
    - Middleware restricts access to protected routes for incomplete profiles
    - Password reset and email verification flows
 
+11. **Music Resource Library**
+   - Curated collection of learning resources
+   - Categorized by instrument and skill level
+   - Multiple resource types: Videos, PDFs, Articles, Audio
+   - Search and filter functionality
+   - Featured resources section
+   - Admin interface for CRUD operations
+
+12. **Global Chat**
+   - Public chat room for all community members
+   - Real-time messaging with Supabase Realtime
+   - Profanity filter with automatic word censoring
+   - Clickable user profiles
+   - Edit and delete message capabilities
+   - Muted by default (no email notifications)
+   - Message count display
+
+13. **File Sharing**
+   - Share files in both DMs and Global Chat
+   - Supported types: Images, Audio (MP3, WAV, OGG), Documents (PDF, DOC)
+   - File size limits: 10MB for media, 25MB for documents
+   - In-chat file previews:
+     - Images: Click-to-enlarge fullscreen view
+     - Audio: Inline player with controls
+     - Documents: Download button with file info
+   - Secure storage with Supabase Storage
+   - Row Level Security policies
+   - File validation (type and size)
+
 ## 🛠️ Technical Stack
 
 ### Frontend
@@ -95,9 +140,12 @@ The official website for the Music Club of IIITDM Kancheepuram, built with moder
 - **Carousel**: React Slick
 - **Type Safety**: TypeScript
 
-### Backend
+### Backend & Database
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
+- **Storage**: Supabase Storage (for avatars and file sharing)
+- **Real-time**: Supabase Realtime (for chat features)
 - **Serverless Functions**: Firebase Functions
-- **Authentication**: Firebase Admin SDK
 - **Email Service**: Nodemailer
 
 ## 📁 Project Structure
@@ -179,6 +227,14 @@ npm run serve
 ## 🔧 Configuration
 
 ### Environment Variables
+
+#### Supabase (Required)
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+#### Firebase (Optional - for legacy features)
 Client-side variables:
 ```
 NEXT_PUBLIC_FIREBASE_API_KEY=
@@ -196,7 +252,29 @@ FIREBASE_PRIVATE_KEY=
 FIREBASE_CLIENT_EMAIL=
 ```
 
-## 📚 API Documentation
+## �️ Database Setup
+
+### Supabase Configuration
+1. Create a Supabase project at [supabase.com](https://supabase.com)
+2. Run the following migrations in order (SQL Editor):
+   - `client/supabase/add-resources-library.sql` - Music Resource Library
+   - `client/supabase/add-global-chat.sql` - Global Chat
+   - `client/supabase/add-file-sharing-fixed.sql` - File Sharing
+
+3. Enable Realtime for tables:
+   - Navigate to **Settings → API → Realtime**
+   - Enable for: `global_chat_messages`
+
+4. Configure Storage:
+   - Buckets are created automatically via migrations
+   - Verify buckets exist: `resources`, `chat-files`, `global-chat-files`
+
+### Feature Documentation
+- **Music Resource Library**: See `MUSIC_RESOURCE_LIBRARY_SETUP.md`
+- **Global Chat**: See `GLOBAL_CHAT_SETUP.md`
+- **File Sharing**: See `FILE_SHARING_SETUP.md` and `DM_FILE_SHARING_UPDATE.md`
+
+## �📚 API Documentation
 
 ### Contact Form API
 Endpoint: `/api/contact`
@@ -235,6 +313,7 @@ This project is licensed - see the [LICENSE.md](LICENSE.md) file for details.
 ## 🙏 Acknowledgements
 
 - [Next.js](https://nextjs.org/) - React framework
+- [Supabase](https://supabase.com/) - Database, authentication, storage, and realtime
 - [Firebase](https://firebase.google.com/) - Backend services
 - [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
 - [Framer Motion](https://www.framer.com/motion/) - Animation library
@@ -248,7 +327,33 @@ For any queries or support, please reach out to:
 
 
 ## 🔄 Recent Updates
-- 📱 **Enhanced Mobile Responsiveness** with improved UI/UX for all screen sizes
+
+### November 2024
+- � **Music Resource Library** - Curated learning resources with advanced filtering
+  - Filter by instrument, skill level, category
+  - Search functionality
+  - Featured resources section
+  - Admin CRUD interface with edit capabilities
+  - Public access at `/resources`
+
+- 🌐 **Global Chat** - Public community chat room
+  - Real-time messaging with Supabase Realtime
+  - Profanity filter with automatic censoring
+  - Edit and delete own messages
+  - Clickable user profiles
+  - Muted notifications (no emails for global chat)
+  - Message count display
+
+- 📎 **File Sharing** - Share files in messages
+  - Support for images, audio, and documents
+  - File size limits (10MB media, 25MB docs)
+  - In-chat previews with fullscreen/player/download
+  - Available in both DMs and Global Chat
+  - Secure storage with RLS policies
+  - Client and server-side validation
+
+### March 2024
+- �📱 **Enhanced Mobile Responsiveness** with improved UI/UX for all screen sizes
 - 🎨 **Refined UI Components** with smoother animations and transitions
 - 📝 **Legal Pages** added:
   - Privacy Policy
@@ -271,5 +376,5 @@ For any queries or support, please reach out to:
 
 ---
 
-Last Updated: March 2024
+Last Updated: November 2024
 Built with ❤️ by the Music Club Team at IIITDM Kancheepuram
