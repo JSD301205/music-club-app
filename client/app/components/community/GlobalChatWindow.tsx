@@ -43,7 +43,7 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
 
     // Subscribe to new messages
     const channel = supabase
-      .channel('global_chat')
+      .channel('global_chat_realtime')
       .on(
         'postgres_changes',
         {
@@ -51,17 +51,20 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
           schema: 'public',
           table: 'global_chat_messages',
         },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            fetchMessages()
-          } else if (payload.eventType === 'UPDATE') {
-            fetchMessages()
+        async (payload) => {
+          console.log('Real-time event:', payload.eventType, payload)
+          
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            // Refetch to get complete data with joined profiles
+            await fetchMessages()
           } else if (payload.eventType === 'DELETE') {
             setMessages((prev) => prev.filter((msg) => msg.id !== payload.old.id))
           }
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log('Subscription status:', status)
+      })
 
     return () => {
       supabase.removeChannel(channel)
@@ -85,7 +88,12 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
         .order('created_at', { ascending: true })
         .limit(200)
 
-      if (error) throw error
+      if (error) {
+        console.error('Fetch error:', error)
+        throw error
+      }
+      
+      console.log('Fetched messages:', data?.length || 0)
       setMessages(data || [])
     } catch (error) {
       console.error('Error fetching messages:', error)
@@ -107,10 +115,13 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
     e.preventDefault()
     if (!newMessage.trim() || !user || sending) return
 
+    const messageToSend = newMessage.trim()
     setSending(true)
+    setNewMessage('') // Clear input immediately for better UX
+
     try {
       // Filter profanity before sending
-      const filteredMessage = filterProfanity(newMessage.trim())
+      const filteredMessage = filterProfanity(messageToSend)
 
       // @ts-ignore - Supabase types
       const { error } = await supabase
@@ -122,10 +133,14 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
         })
 
       if (error) throw error
-      setNewMessage('')
+
+      // Fetch messages to ensure we have the latest
+      await fetchMessages()
     } catch (error) {
       console.error('Error sending message:', error)
       alert('Failed to send message')
+      // Restore message in input on error
+      setNewMessage(messageToSend)
     } finally {
       setSending(false)
     }
