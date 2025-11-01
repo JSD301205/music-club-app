@@ -24,9 +24,11 @@ import {
 } from '../app/data/team2024'
 import { 
   coreMembers2025, 
+  leads2025,
   coordinators2025, 
   crew2025, 
-  mentors2025 
+  mentors2025,
+  externalMentors2025
 } from '../app/data/team2025'
 
 // Load environment variables from .env.local
@@ -121,9 +123,11 @@ async function migrateTeamMembers() {
     
     // 2025 Team  
     ...coreMembers2025.map(m => ({ ...m, year: 2025, category: 'core' as const, role: 'Core', position: m.role })),
+    ...leads2025.map(m => ({ ...m, year: 2025, category: 'coordinator' as const, role: 'Lead', position: m.role })),
     ...coordinators2025.map(m => ({ ...m, year: 2025, category: 'coordinator' as const, role: 'Coordinator', position: m.role })),
     ...crew2025.map(m => ({ ...m, year: 2025, category: 'crew' as const, role: 'Crew', position: m.role })),
     ...mentors2025.map(m => ({ ...m, year: 2025, category: 'mentor' as const, role: 'Mentor', position: m.role })),
+    ...externalMentors2025.map(m => ({ ...m, year: 2025, category: 'mentor' as const, role: 'External Mentor', position: m.role })),
   ]
 
   let successCount = 0

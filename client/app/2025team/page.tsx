@@ -16,12 +16,34 @@ export default function Team2025() {
   });
 
   // Group by category
-  const coreMembers = teamMembers.filter(m => m.category === 'core' || m.role === 'Core');
-  const leads = teamMembers.filter(m => m.role === 'Lead' || m.position?.includes('Lead'));
-  const coordinators = teamMembers.filter(m => m.category === 'coordinator' || m.role === 'Coordinator');
-  const crew = teamMembers.filter(m => m.category === 'crew' || m.role === 'Crew');
-  const mentors = teamMembers.filter(m => m.category === 'mentor' && m.role !== 'External Mentor');
-  const externalMentors = teamMembers.filter(m => m.role === 'External Mentor');
+  const coreMembers = teamMembers.filter(m => m.category === 'core' || m.role?.toLowerCase().includes('core'));
+  
+  // Leads: Look for role='Lead' OR position contains 'Lead' OR category='lead'
+  const leads = teamMembers.filter(m => 
+    m.role?.toLowerCase() === 'lead' || 
+    m.position?.toLowerCase().includes('lead') ||
+    m.category?.toLowerCase() === 'lead'
+  );
+  
+  const coordinators = teamMembers.filter(m => 
+    m.category === 'coordinator' || 
+    m.role?.toLowerCase().includes('coordinator')
+  );
+  
+  const crew = teamMembers.filter(m => 
+    m.category === 'crew' || 
+    m.role?.toLowerCase().includes('crew')
+  );
+  
+  const mentors = teamMembers.filter(m => 
+    (m.category === 'mentor' || m.role?.toLowerCase().includes('mentor')) && 
+    !m.role?.toLowerCase().includes('external')
+  );
+  
+  const externalMentors = teamMembers.filter(m => 
+    m.role?.toLowerCase().includes('external mentor') ||
+    m.position?.toLowerCase().includes('external mentor')
+  );
 
   useEffect(() => {
     setIsClient(true);
