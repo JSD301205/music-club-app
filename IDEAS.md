@@ -50,10 +50,10 @@
 16. **Alumni Network**
    - Separate section for alumni profiles, networking, and potential guest performances at events.
 
-17. **File Sharing**
+<!-- 17. **File Sharing**
    - Share audio clips, sheet music, images
    - Preview files in chat
-   - Supabase Storage integration
+   - Supabase Storage integration -->
 
 18. **Band Profiles**
    - Showcase members and roles on band pages with Performance history

@@ -4,9 +4,11 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { createClient } from '@/app/lib/supabase-client'
 import { filterProfanity } from '@/app/utils/profanityFilter'
+import { uploadChatFile, formatFileSize } from '@/app/utils/fileUpload'
+import FilePreview from './FilePreview'
 import Image from 'next/image'
 import Link from 'next/link'
-import { FaArrowLeft, FaPaperPlane, FaGlobeAmericas, FaTrash, FaEdit, FaTimes, FaSave } from 'react-icons/fa'
+import { FaArrowLeft, FaPaperPlane, FaGlobeAmericas, FaTrash, FaEdit, FaTimes, FaSave, FaPaperclip } from 'react-icons/fa'
 
 interface GlobalChatMessage {
   id: string
@@ -14,6 +16,10 @@ interface GlobalChatMessage {
   message: string
   created_at: string
   edited_at?: string
+  file_url?: string
+  file_name?: string
+  file_type?: string
+  file_size?: number
   profiles?: {
     username: string
     full_name: string
@@ -33,6 +39,9 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
   const [loading, setLoading] = useState(true)
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null)
   const [editedMessage, setEditedMessage] = useState('')
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
@@ -137,17 +146,57 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
     return () => clearTimeout(timer)
   }, [messages])
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setSelectedFile(file)
+    }
+  }
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMessage.trim() || !user || sending) return
+    if ((!newMessage.trim() && !selectedFile) || !user || sending) return
 
     const messageToSend = newMessage.trim()
     setSending(true)
     setNewMessage('') // Clear input immediately for better UX
 
     try {
+      let fileData = null
+
+      // Upload file if selected
+      if (selectedFile) {
+        setUploading(true)
+        try {
+          const uploadResult = await uploadChatFile(selectedFile, user.id, 'global-chat-files')
+          fileData = {
+            file_url: uploadResult.url,
+            file_name: uploadResult.fileName,
+            file_type: uploadResult.fileType,
+            file_size: uploadResult.fileSize,
+          }
+          setSelectedFile(null)
+          if (fileInputRef.current) {
+            fileInputRef.current.value = ''
+          }
+        } catch (uploadError: any) {
+          alert(uploadError.message || 'Failed to upload file')
+          setNewMessage(messageToSend)
+          return
+        } finally {
+          setUploading(false)
+        }
+      }
+
       // Filter profanity before sending
-      const filteredMessage = filterProfanity(messageToSend)
+      const filteredMessage = messageToSend ? filterProfanity(messageToSend) : null
 
       // @ts-ignore - Supabase types
       const { error } = await supabase
@@ -156,6 +205,7 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
         .insert({
           user_id: user.id,
           message: filteredMessage,
+          ...fileData,
         })
 
       if (error) throw error
@@ -360,14 +410,29 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
                         </div>
                       </div>
                     ) : (
-                      <div
-                        className={`p-3 rounded-2xl ${
-                          isOwnMessage
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-gray-700 text-white'
-                        }`}
-                      >
-                        <p className="text-sm whitespace-pre-wrap break-words">{message.message}</p>
+                      <div className="space-y-2">
+                        {/* Text message */}
+                        {message.message && (
+                          <div
+                            className={`p-3 rounded-2xl ${
+                              isOwnMessage
+                                ? 'bg-purple-600 text-white'
+                                : 'bg-gray-700 text-white'
+                            }`}
+                          >
+                            <p className="text-sm whitespace-pre-wrap break-words">{message.message}</p>
+                          </div>
+                        )}
+                        
+                        {/* File attachment */}
+                        {message.file_url && message.file_type && (
+                          <FilePreview
+                            fileUrl={message.file_url}
+                            fileName={message.file_name || 'file'}
+                            fileType={message.file_type}
+                            fileSize={message.file_size}
+                          />
+                        )}
                       </div>
                     )}
 
@@ -401,26 +466,70 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
 
       {/* Input */}
       <div className="p-4 border-t border-gray-700 bg-gray-800/50">
+        {/* File preview */}
+        {selectedFile && (
+          <div className="mb-3 p-3 bg-gray-700/50 rounded-lg border border-gray-600 flex items-center justify-between">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <FaPaperclip className="text-purple-400" />
+              <span className="text-white text-sm truncate">{selectedFile.name}</span>
+              <span className="text-gray-400 text-xs">({formatFileSize(selectedFile.size)})</span>
+            </div>
+            <button
+              onClick={handleRemoveFile}
+              className="text-gray-400 hover:text-red-400 transition-colors"
+            >
+              <FaTimes />
+            </button>
+          </div>
+        )}
+
         <form onSubmit={handleSendMessage} className="flex gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,audio/*,.pdf,.doc,.docx"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={sending || uploading}
+            className="px-3 py-3 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Attach file"
+          >
+            <FaPaperclip />
+          </button>
+
           <input
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
-            disabled={sending}
+            disabled={sending || uploading}
             className="flex-1 px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
           />
           <button
             type="submit"
-            disabled={!newMessage.trim() || sending}
+            disabled={(!newMessage.trim() && !selectedFile) || sending || uploading}
             className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            <FaPaperPlane />
-            <span className="hidden sm:inline">Send</span>
+            {uploading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span className="hidden sm:inline">Uploading...</span>
+              </>
+            ) : (
+              <>
+                <FaPaperPlane />
+                <span className="hidden sm:inline">Send</span>
+              </>
+            )}
           </button>
         </form>
         <p className="text-xs text-gray-500 mt-2">
-          Press Enter to send
+          Attach images, audio, or documents (max 10-25MB) • Inappropriate language will be filtered
         </p>
       </div>
     </div>
