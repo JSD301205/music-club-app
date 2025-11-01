@@ -379,7 +379,7 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
           </button>
         </form>
         <p className="text-xs text-gray-500 mt-2">
-          Press Enter to send • Inappropriate language will be filtered
+          Press Enter to send
         </p>
       </div>
     </div>
