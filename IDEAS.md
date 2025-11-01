@@ -6,8 +6,8 @@
 2. **Team Card Linking to Community Profiles**
    - In the `/team` section, make each team member card clickable so that pressing it navigates to their `/community/[username]` profile page (e.g., clicking David J Sharon goes to `/community/jsd`).
 
-3. **Google & GitHub OAuth** 
-   — Enable Supabase OAuth sign-in; ensure profile creation and username collision handling.
+<!-- 3. **Google & GitHub OAuth** 
+   — Enable Supabase OAuth sign-in; ensure profile creation and username collision handling. -->
 
 4. **Clickable member cards (UX notes)**
    - Whole card as a link, show chevron, disable link for private profiles.
@@ -34,8 +34,8 @@
     - Members can share and collaboratively edit setlists, chord sheets, and song suggestions for events.
     - Section for Originals by our Club
 
-12. **Music Resource Library**
-    - Curated library of learning resources (tutorials, sheet music, backing tracks) categorized by instrument and skill level.
+<!-- 12. **Music Resource Library**
+    - Curated library of learning resources (tutorials, sheet music, backing tracks) categorized by instrument and skill level. -->
 
 13. **Music Theory Quiz/Games**
     - Interactive quizzes and games for learning music theory, ear training, and rhythm practice. Daily questions.
@@ -60,8 +60,8 @@
    - Preview files in chat
    - Supabase Storage integration
 
-21. **Notifications**
-   - Email notifications
+<!-- 21. **Notifications**
+   - Email notifications -->
 
 22. **Band Profiles**
    - Showcase members and roles on band pages with Performance history

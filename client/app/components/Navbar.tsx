@@ -58,6 +58,7 @@ const Navbar = () => {
     { name: 'Events', href: '/events' },
     { name: 'Team', href: '/team' },
     { name: 'Gallery', href: '/gallery' },
+    { name: 'Resources', href: '/resources' },
     { name: 'Community', href: '/community' },
     { name: 'Jam Board', href: '/jam-board' },
     { name: 'Contact', href: pathname === '/' ? '#contact' : '/#contact' },
@@ -86,7 +87,7 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
