@@ -201,6 +201,37 @@ export default function AdminPage() {
         </button>
       </div>
 
+      {/* Quick Navigation */}
+      <div className="mb-8 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Quick Access</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <button
+            onClick={() => router.push('/admin/bands')}
+            className="p-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors text-sm font-medium"
+          >
+            Manage Bands
+          </button>
+          <button
+            onClick={() => router.push('/admin/team')}
+            className="p-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors text-sm font-medium"
+          >
+            Manage Team
+          </button>
+          <button
+            onClick={() => router.push('/admin/resources')}
+            className="p-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors text-sm font-medium"
+          >
+            Manage Resources
+          </button>
+          <button
+            onClick={() => window.location.reload()}
+            className="p-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium"
+          >
+            Add Events/Gallery
+          </button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Gallery Item Form */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md max-h-[85vh] overflow-y-auto">
