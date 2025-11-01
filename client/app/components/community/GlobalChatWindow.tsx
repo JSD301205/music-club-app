@@ -73,28 +73,54 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
 
   const fetchMessages = async () => {
     try {
+      // Fetch messages
       // @ts-ignore - Supabase types
-      const { data, error } = await supabase
+      const { data: messagesData, error: messagesError } = await supabase
         .from('global_chat_messages')
-        .select(`
-          *,
-          profiles:user_id (
-            username,
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('is_deleted', false)
         .order('created_at', { ascending: true })
         .limit(200)
 
-      if (error) {
-        console.error('Fetch error:', error)
-        throw error
+      if (messagesError) {
+        console.error('Fetch error:', messagesError)
+        throw messagesError
       }
+
+      if (!messagesData || messagesData.length === 0) {
+        console.log('No messages found')
+        setMessages([])
+        return
+      }
+
+      // Fetch profiles for all user_ids
+      const userIds = Array.from(new Set(messagesData.map((msg: any) => msg.user_id)))
       
-      console.log('Fetched messages:', data?.length || 0)
-      setMessages(data || [])
+      // @ts-ignore - Supabase types
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, username, full_name, avatar_url')
+        .in('id', userIds)
+
+      if (profilesError) {
+        console.error('Profiles fetch error:', profilesError)
+        // Still show messages even if profiles fail
+        setMessages(messagesData.map((msg: any) => ({
+          ...msg,
+          profiles: null
+        })))
+        return
+      }
+
+      // Map profiles to messages
+      const profilesMap = new Map(profilesData?.map((p: any) => [p.id, p]) || [])
+      const messagesWithProfiles = messagesData.map((msg: any) => ({
+        ...msg,
+        profiles: profilesMap.get(msg.user_id) || null
+      }))
+      
+      console.log('Fetched messages:', messagesWithProfiles.length)
+      setMessages(messagesWithProfiles)
     } catch (error) {
       console.error('Error fetching messages:', error)
     } finally {
