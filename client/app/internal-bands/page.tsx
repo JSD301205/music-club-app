@@ -2,10 +2,12 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { bands } from '../data/bands';
+import { useBandsWithMembers } from '../hooks/useBandsTeam';
 import AnimatedSection from '../components/layout/AnimatedSection';
 
 export default function InternalBandsPage() {
+  const { bands, loading, error } = useBandsWithMembers({ is_published: true });
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
       <AnimatedSection id="internal-bands-page" className="py-20">
@@ -24,8 +26,22 @@ export default function InternalBandsPage() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 gap-10 max-w-5xl mx-auto">
-            {bands.map((band, index) => (
+          {loading && (
+            <div className="flex justify-center items-center min-h-[400px]">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+            </div>
+          )}
+
+          {error && (
+            <div className="text-center text-red-400 p-8 bg-red-900/20 rounded-lg max-w-2xl mx-auto">
+              <p className="text-xl mb-2">Failed to load bands</p>
+              <p className="text-sm">{error}</p>
+            </div>
+          )}
+
+          {!loading && !error && (
+            <div className="grid grid-cols-1 gap-10 max-w-5xl mx-auto">
+              {bands.map((band, index) => (
               <motion.div
                 key={band.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -36,8 +52,8 @@ export default function InternalBandsPage() {
                 <div className="flex flex-col md:flex-row">
                   {/* Left side - Member photos grid */}
                   <div className="w-full md:w-1/2 flex items-center justify-center p-8">
-                    <div className={`grid ${band.members.length <= 6 ? 'grid-cols-3' : 'grid-cols-3'} gap-2 p-4 rounded-lg overflow-hidden w-full max-w-md`}>
-                      {band.members.map((member) => (
+                    <div className={`grid ${band.band_members?.length <= 6 ? 'grid-cols-3' : 'grid-cols-3'} gap-2 p-4 rounded-lg overflow-hidden w-full max-w-md`}>
+                      {band.band_members?.map((member) => (
                         <div key={member.id} className="aspect-square relative overflow-hidden group">
                           <Image
                             src={member.image}
@@ -61,7 +77,7 @@ export default function InternalBandsPage() {
                     
                     <h4 className="text-lg font-semibold text-white mb-3">Members & Instruments</h4>
                     <ul className="list-disc pl-5 text-gray-300 space-y-2">
-                      {band.members.map((member) => (
+                      {band.band_members?.map((member) => (
                         <li key={member.id}>
                           <span className="font-medium">{member.name}</span> - <span className="text-gray-400">{member.instrument}</span>
                         </li>
@@ -71,7 +87,8 @@ export default function InternalBandsPage() {
                 </div>
               </motion.div>
             ))}
-          </div>
+            </div>
+          )}
 
           {/* Decorative elements */}
           <div className="fixed top-20 left-10 w-40 h-40 bg-primary-500/20 rounded-full blur-3xl animate-float" />

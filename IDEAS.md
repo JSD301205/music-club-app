@@ -6,6 +6,7 @@
 2. **Team Card Linking to Community Profiles**
    - In the `/team` section, make each team member card clickable so that pressing it navigates to their `/community/[username]` profile page (e.g., clicking David J Sharon goes to `/community/jsd`).
    - Whole card as a link, show chevron, disable link for private profiles.
+   - Showcase members and roles on band pages with Performance history
 
 <!-- 3. **Google & GitHub OAuth** 
    — Enable Supabase OAuth sign-in; ensure profile creation and username collision handling. -->
@@ -55,9 +56,6 @@
    - Preview files in chat
    - Supabase Storage integration -->
 
-18. **Band Profiles**
-   - Showcase members and roles on band pages with Performance history
-
-19. **Migrate to DB**
-   - Migrate all the local stored data (/Team, /Band, etcx) to DB
+<!-- 18. **Migrate to DB**
+   - Migrate all the local stored data (/Team, /Band, etcx) to DB -->
 

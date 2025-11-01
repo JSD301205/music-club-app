@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react';
 import TeamSection from '../components/sections/TeamSection';
 import SliderCSS from '../components/layout/SliderCSS';
-import { coreMembers2024, coordinators2024, crew2024, mentors2024 } from '../data/team2024';
+import { useTeamByYear } from '../hooks/useBandsTeam';
 
 export default function Team2024() {
   const [windowWidth, setWindowWidth] = useState(0);
   const [isClient, setIsClient] = useState(false);
+  const { cores, coordinators, crew, mentors, loading, error } = useTeamByYear(2024);
 
   useEffect(() => {
     setIsClient(true);
@@ -21,16 +22,35 @@ export default function Team2024() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center text-red-400 p-8 bg-red-900/20 rounded-lg max-w-2xl mx-auto">
+          <p className="text-xl mb-2">Failed to load team members</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="overflow-hidden">
       {isClient && <SliderCSS />}
       <TeamSection 
         windowWidth={windowWidth} 
         isClient={isClient}
-        coreMembers={coreMembers2024}
-        coordinators={coordinators2024}
-        crew={crew2024}
-        mentors={mentors2024}
+        coreMembers={cores}
+        coordinators={coordinators}
+        crew={crew}
+        mentors={mentors}
         mentorsAsCarousel={true}
       />
     </main>

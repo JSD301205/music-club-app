@@ -1,11 +1,11 @@
 'use client';
 
 import Image from 'next/image';
-import { Band } from '../data/bands';
+import { BandWithMembers } from '../types/bands-team.types';
 import { useState } from 'react';
 
 interface BandCardProps {
-  band: Band;
+  band: BandWithMembers;
 }
 
 export default function BandCard({ band }: BandCardProps) {
@@ -17,7 +17,7 @@ export default function BandCard({ band }: BandCardProps) {
         {/* Left side - Band members grid */}
         <div className="md:w-1/2">
           <div className="grid grid-cols-3 gap-2">
-            {band.members.map((member) => (
+            {band.band_members?.map((member) => (
               <div 
                 key={member.id} 
                 className="relative aspect-square w-full group overflow-hidden"
@@ -53,7 +53,7 @@ export default function BandCard({ band }: BandCardProps) {
           
           <h3 className="text-xl font-semibold mb-3 text-white">Members</h3>
           <div className="grid grid-cols-1 gap-2">
-            {band.members.map((member) => (
+            {band.band_members?.map((member) => (
               <div key={member.id} className="flex items-center text-gray-300">
                 <span className="font-medium">{member.name}</span>
                 <span className="mx-2">•</span>

@@ -3,11 +3,25 @@
 import { useState, useEffect } from 'react';
 import TeamSection from '../components/sections/TeamSection';
 import SliderCSS from '../components/layout/SliderCSS';
-import { coreMembers2025, leads2025, coordinators2025, crew2025, mentors2025, externalMentors2025 } from '../data/team2025';
+import { useTeamMembers } from '../hooks/useBandsTeam';
 
 export default function Team2025() {
   const [windowWidth, setWindowWidth] = useState(0);
   const [isClient, setIsClient] = useState(false);
+  
+  // Fetch all team members for 2025
+  const { teamMembers, loading, error } = useTeamMembers({ 
+    year: 2025,
+    is_published: true 
+  });
+
+  // Group by category
+  const coreMembers = teamMembers.filter(m => m.category === 'core' || m.role === 'Core');
+  const leads = teamMembers.filter(m => m.role === 'Lead' || m.position?.includes('Lead'));
+  const coordinators = teamMembers.filter(m => m.category === 'coordinator' || m.role === 'Coordinator');
+  const crew = teamMembers.filter(m => m.category === 'crew' || m.role === 'Crew');
+  const mentors = teamMembers.filter(m => m.category === 'mentor' && m.role !== 'External Mentor');
+  const externalMentors = teamMembers.filter(m => m.role === 'External Mentor');
 
   useEffect(() => {
     setIsClient(true);
@@ -21,18 +35,37 @@ export default function Team2025() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center text-red-400 p-8 bg-red-900/20 rounded-lg max-w-2xl mx-auto">
+          <p className="text-xl mb-2">Failed to load team members</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="overflow-hidden">
       {isClient && <SliderCSS />}
       <TeamSection 
         windowWidth={windowWidth} 
         isClient={isClient}
-        coreMembers={coreMembers2025}
-        leads={leads2025}
-        coordinators={coordinators2025}
-        crew={crew2025}
-        mentors={mentors2025}
-        externalMentors={externalMentors2025}
+        coreMembers={coreMembers}
+        leads={leads}
+        coordinators={coordinators}
+        crew={crew}
+        mentors={mentors}
+        externalMentors={externalMentors}
         mentorsAsCarousel={true}
       />
     </main>
