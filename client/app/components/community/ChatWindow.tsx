@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, ChangeEvent } from 'react'
 import { useAuth } from '@/app/contexts/AuthContext'
 import { useMessages } from '@/app/hooks/useChat'
 import { createClient } from '@/app/lib/supabase-client'
 import { Profile } from '@/app/types/database.types'
+import { uploadChatFile, formatFileSize } from '@/app/utils/fileUpload'
+import FilePreview from './FilePreview'
 import Image from 'next/image'
 import Link from 'next/link'
-import { FaArrowLeft, FaPaperPlane, FaUser } from 'react-icons/fa'
+import { FaArrowLeft, FaPaperPlane, FaUser, FaPaperclip, FaTimes } from 'react-icons/fa'
 
 interface ChatWindowProps {
   conversationId: string
@@ -20,7 +22,10 @@ export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) 
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
   const [otherUser, setOtherUser] = useState<Profile | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
 
   // Fetch other user's profile
@@ -82,16 +87,82 @@ export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) 
     return () => clearTimeout(timer)
   }, [messages])
 
+  const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setSelectedFile(file)
+    }
+  }
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newMessage.trim() || !user || !otherUser || sending) return
+    if ((!newMessage.trim() && !selectedFile) || !user || !otherUser || sending || uploading) return
+
+    // Store the message content before clearing
+    const messageToSend = newMessage.trim()
 
     setSending(true)
     try {
-      await sendMessage(newMessage.trim(), user.id, otherUser.id)
+      let fileData: any = {}
+
+      // Upload file first if selected
+      if (selectedFile) {
+        setUploading(true)
+        try {
+          const uploadResult = await uploadChatFile(selectedFile, user.id, 'chat-files')
+          fileData = {
+            file_url: uploadResult.url,
+            file_name: uploadResult.fileName,
+            file_type: uploadResult.fileType,
+            file_size: uploadResult.fileSize,
+          }
+          // Clear file selection after successful upload
+          setSelectedFile(null)
+          if (fileInputRef.current) {
+            fileInputRef.current.value = ''
+          }
+        } catch (error: any) {
+          alert(`Failed to upload file: ${error.message}`)
+          return
+        } finally {
+          setUploading(false)
+        }
+      }
+
+      // Send message with optional file data
+      // Note: This uses the sendMessage from useChat hook, which needs to be updated
+      // For now, we'll insert directly to handle file data
+      const { error } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          receiver_id: otherUser.id,
+          content: messageToSend || null,
+          ...fileData,
+        })
+
+      if (error) throw error
+
+      // Update conversation's last_message_at
+      // @ts-ignore - Supabase types
+      const updateResult = await supabase
+        .from('conversations')
+        // @ts-ignore - Supabase types
+        .update({ last_message_at: new Date().toISOString() })
+        .eq('id', conversationId)
+
       setNewMessage('')
     } catch (error) {
       console.error('Error sending message:', error)
+      alert('Failed to send message')
     } finally {
       setSending(false)
     }
@@ -169,16 +240,35 @@ export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) 
                 className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[70%] ${
-                    isOwnMessage
-                      ? 'bg-purple-600 text-white rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl'
-                      : 'bg-gray-700 text-white rounded-tl-2xl rounded-tr-2xl rounded-br-2xl'
-                  } p-3`}
+                  className={`max-w-[70%] space-y-2`}
                 >
-                  <p className="break-words">{message.content}</p>
+                  {/* Text message */}
+                  {message.content && (
+                    <div
+                      className={`${
+                        isOwnMessage
+                          ? 'bg-purple-600 text-white rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl'
+                          : 'bg-gray-700 text-white rounded-tl-2xl rounded-tr-2xl rounded-br-2xl'
+                      } p-3`}
+                    >
+                      <p className="break-words">{message.content}</p>
+                    </div>
+                  )}
+
+                  {/* File attachment */}
+                  {(message as any).file_url && (message as any).file_type && (
+                    <FilePreview
+                      fileUrl={(message as any).file_url}
+                      fileName={(message as any).file_name || 'file'}
+                      fileType={(message as any).file_type}
+                      fileSize={(message as any).file_size}
+                    />
+                  )}
+
+                  {/* Timestamp */}
                   <p
-                    className={`text-xs mt-1 ${
-                      isOwnMessage ? 'text-purple-200' : 'text-gray-400'
+                    className={`text-xs ${
+                      isOwnMessage ? 'text-purple-200 text-right' : 'text-gray-400'
                     }`}
                   >
                     {formatTime(message.created_at)}
@@ -193,23 +283,81 @@ export default function ChatWindow({ conversationId, onBack }: ChatWindowProps) 
 
       {/* Message Input */}
       <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-700 bg-gray-800/30">
-        <div className="flex gap-2">
+        <div className="space-y-3">
+          {/* File Input (hidden) */}
           <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-            disabled={sending}
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,audio/*,.pdf,.doc,.docx"
+            onChange={handleFileSelect}
+            className="hidden"
           />
-          <button
-            type="submit"
-            disabled={!newMessage.trim() || sending}
-            className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
-          >
-            <FaPaperPlane />
-            <span className="hidden sm:inline">Send</span>
-          </button>
+
+          {/* File Preview */}
+          {selectedFile && (
+            <div className="flex items-center gap-3 p-3 bg-gray-800/50 border border-gray-600 rounded-lg">
+              <FaPaperclip className="text-purple-400" />
+              <div className="flex-1 min-w-0">
+                <p className="text-white text-sm truncate">{selectedFile.name}</p>
+                <p className="text-gray-400 text-xs">{formatFileSize(selectedFile.size)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleRemoveFile}
+                className="text-gray-400 hover:text-red-400 transition-colors"
+              >
+                <FaTimes />
+              </button>
+            </div>
+          )}
+
+          {/* Input Row */}
+          <div className="flex gap-2">
+            {/* File Attach Button */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="px-3 py-3 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white rounded-lg transition-colors"
+              title="Attach file"
+              disabled={uploading || sending}
+            >
+              <FaPaperclip size={18} />
+            </button>
+
+            {/* Text Input */}
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Type a message or attach a file..."
+              className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              disabled={sending || uploading}
+            />
+
+            {/* Send Button */}
+            <button
+              type="submit"
+              disabled={(!newMessage.trim() && !selectedFile) || sending || uploading}
+              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            >
+              {uploading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                  <span className="hidden sm:inline">Uploading...</span>
+                </>
+              ) : (
+                <>
+                  <FaPaperPlane />
+                  <span className="hidden sm:inline">Send</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Helper Text */}
+          <p className="text-xs text-gray-500">
+            Supports images, audio, and documents (max 10MB for media, 25MB for docs)
+          </p>
         </div>
       </form>
     </div>
