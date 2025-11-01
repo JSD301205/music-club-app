@@ -28,6 +28,7 @@ export default function AdminResourcesPage() {
     is_featured: false,
     is_published: true,
   })
+  const [editFormData, setEditFormData] = useState<Resource | null>(null)
 
   useEffect(() => {
     // Debug logging
@@ -109,20 +110,41 @@ export default function AdminResourcesPage() {
     }
   }
 
-  const handleUpdate = async (id: string) => {
-    try {
-      const resourceToUpdate = resources.find((r) => r.id === id)
-      if (!resourceToUpdate) return
+  const handleEdit = (resource: Resource) => {
+    setEditFormData(resource)
+    setEditingId(resource.id)
+  }
 
+  const handleCancelEdit = () => {
+    setEditFormData(null)
+    setEditingId(null)
+  }
+
+  const handleUpdate = async () => {
+    if (!editFormData) return
+
+    try {
       // @ts-ignore - Resources table types not yet generated
       const { error } = await supabase
         .from('resources')
         // @ts-ignore - Resources table types not yet generated
-        .update(resourceToUpdate)
-        .eq('id', id)
+        .update({
+          title: editFormData.title,
+          description: editFormData.description,
+          category: editFormData.category,
+          instrument: editFormData.instrument,
+          skill_level: editFormData.skill_level,
+          resource_type: editFormData.resource_type,
+          resource_url: editFormData.resource_url,
+          tags: editFormData.tags,
+          is_featured: editFormData.is_featured,
+          is_published: editFormData.is_published,
+        })
+        .eq('id', editFormData.id)
 
       if (error) throw error
 
+      setEditFormData(null)
       setEditingId(null)
       fetchResources()
     } catch (error) {
@@ -323,6 +345,155 @@ export default function AdminResourcesPage() {
           </div>
         )}
 
+        {/* Edit Resource Modal */}
+        {editFormData && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  Edit Resource
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    placeholder="Title *"
+                    value={editFormData.title || ''}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, title: e.target.value })
+                    }
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                  />
+                  <select
+                    value={editFormData.category}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        category: e.target.value as ResourceCategory,
+                      })
+                    }
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                  >
+                    <option value="tutorial">Tutorial</option>
+                    <option value="sheet_music">Sheet Music</option>
+                    <option value="backing_track">Backing Track</option>
+                    <option value="lesson">Lesson</option>
+                    <option value="other">Other</option>
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Instrument (e.g., guitar, piano)"
+                    value={editFormData.instrument || ''}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, instrument: e.target.value })
+                    }
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                  />
+                  <select
+                    value={editFormData.skill_level}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        skill_level: e.target.value as SkillLevel,
+                      })
+                    }
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                  >
+                    <option value="all">All Levels</option>
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+                  <select
+                    value={editFormData.resource_type}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        resource_type: e.target.value as ResourceType,
+                      })
+                    }
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                  >
+                    <option value="link">Link</option>
+                    <option value="file">File</option>
+                    <option value="embedded_video">Embedded Video</option>
+                  </select>
+                  <input
+                    type="url"
+                    placeholder="Resource URL *"
+                    value={editFormData.resource_url || ''}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, resource_url: e.target.value })
+                    }
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Tags (comma separated)"
+                    value={editFormData.tags?.join(', ') || ''}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        tags: e.target.value.split(',').map((t) => t.trim()),
+                      })
+                    }
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white md:col-span-2"
+                  />
+                  <textarea
+                    placeholder="Description"
+                    value={editFormData.description || ''}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, description: e.target.value })
+                    }
+                    rows={3}
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white md:col-span-2"
+                  />
+                  <div className="flex items-center gap-4 md:col-span-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editFormData.is_featured}
+                        onChange={(e) =>
+                          setEditFormData({ ...editFormData, is_featured: e.target.checked })
+                        }
+                        className="w-4 h-4"
+                      />
+                      <span className="text-gray-700 dark:text-gray-300">Featured</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editFormData.is_published}
+                        onChange={(e) =>
+                          setEditFormData({ ...editFormData, is_published: e.target.checked })
+                        }
+                        className="w-4 h-4"
+                      />
+                      <span className="text-gray-700 dark:text-gray-300">Published</span>
+                    </label>
+                  </div>
+                </div>
+                <div className="mt-6 flex justify-end gap-2">
+                  <button
+                    onClick={handleCancelEdit}
+                    className="flex items-center gap-2 px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                  >
+                    <FaTimes />
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleUpdate}
+                    disabled={!editFormData.title || !editFormData.resource_url}
+                    className="flex items-center gap-2 px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FaSave />
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Resources List */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -397,13 +568,22 @@ export default function AdminResourcesPage() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                          title="Open resource"
                         >
                           <FaExternalLinkAlt />
                         </a>
                       )}
                       <button
+                        onClick={() => handleEdit(resource)}
+                        className="text-orange-600 hover:text-orange-900 dark:text-orange-400 dark:hover:text-orange-300"
+                        title="Edit resource"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
                         onClick={() => handleDelete(resource.id)}
                         className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        title="Delete resource"
                       >
                         <FaTrash />
                       </button>
