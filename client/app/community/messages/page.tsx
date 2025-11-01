@@ -7,12 +7,14 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/app/lib/supabase-client'
 import Image from 'next/image'
 import ChatWindow from '@/app/components/community/ChatWindow'
-import { FaInbox, FaSearch } from 'react-icons/fa'
+import GlobalChatWindow from '@/app/components/community/GlobalChatWindow'
+import { FaInbox, FaSearch, FaGlobeAmericas } from 'react-icons/fa'
 
 function MessagesPageContent() {
   const { user, loading: authLoading } = useAuth()
   const { conversations, loading, refetch } = useConversations(user?.id)
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null)
+  const [showGlobalChat, setShowGlobalChat] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -100,6 +102,38 @@ function MessagesPageContent() {
               </div>
             </div>
 
+            {/* Global Chat Button */}
+            <div className="px-4 pb-4">
+              <button
+                onClick={() => {
+                  setShowGlobalChat(true)
+                  setSelectedConversation(null)
+                }}
+                className={`w-full p-4 flex items-center gap-3 rounded-lg transition-all ${
+                  showGlobalChat 
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg' 
+                    : 'bg-gray-800/50 hover:bg-gray-800 border border-gray-700'
+                }`}
+              >
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  showGlobalChat 
+                    ? 'bg-white/20' 
+                    : 'bg-gradient-to-r from-purple-500 to-pink-500'
+                }`}>
+                  <FaGlobeAmericas className="text-white" size={24} />
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-white font-semibold">Global Chat</h3>
+                    <span className="text-xs bg-purple-500 text-white px-2 py-0.5 rounded-full">
+                      Public
+                    </span>
+                  </div>
+                  <p className="text-gray-300 text-sm">Community-wide discussion</p>
+                </div>
+              </button>
+            </div>
+
             {/* Conversations */}
             <div className="flex-1 overflow-y-auto">
               {filteredConversations.length === 0 ? (
@@ -114,7 +148,10 @@ function MessagesPageContent() {
                 filteredConversations.map((conversation) => (
                   <button
                     key={conversation.id}
-                    onClick={() => setSelectedConversation(conversation.id)}
+                    onClick={() => {
+                      setSelectedConversation(conversation.id)
+                      setShowGlobalChat(false)
+                    }}
                     className={`w-full p-4 flex items-center gap-3 hover:bg-gray-800/50 transition-colors border-b border-gray-700/50 ${
                       selectedConversation === conversation.id ? 'bg-gray-800/50' : ''
                     }`}
@@ -157,8 +194,12 @@ function MessagesPageContent() {
           </div>
 
           {/* Chat Window */}
-          <div className={`flex-1 ${selectedConversation ? 'block' : 'hidden md:block'}`}>
-            {selectedConversation ? (
+          <div className={`flex-1 ${selectedConversation || showGlobalChat ? 'block' : 'hidden md:block'}`}>
+            {showGlobalChat ? (
+              <GlobalChatWindow
+                onBack={() => setShowGlobalChat(false)}
+              />
+            ) : selectedConversation ? (
               <ChatWindow
                 conversationId={selectedConversation}
                 onBack={() => setSelectedConversation(null)}
@@ -166,8 +207,11 @@ function MessagesPageContent() {
             ) : (
               <div className="h-full flex items-center justify-center">
                 <div className="text-center">
-                  <FaInbox className="text-6xl text-gray-600 mb-4 mx-auto" />
-                  <p className="text-gray-400 text-lg">Select a conversation to start chatting</p>
+                  <FaGlobeAmericas className="text-6xl text-gray-600 mb-4 mx-auto" />
+                  <p className="text-gray-400 text-lg mb-2">Welcome to Messages</p>
+                  <p className="text-gray-500 text-sm">
+                    Join the Global Chat or select a conversation
+                  </p>
                 </div>
               </div>
             )}
