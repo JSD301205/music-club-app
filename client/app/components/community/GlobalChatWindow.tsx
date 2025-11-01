@@ -52,7 +52,7 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
           table: 'global_chat_messages',
         },
         async (payload) => {
-          console.log('Real-time event:', payload.eventType, payload)
+          // console.log('Real-time event:', payload.eventType, payload)
           
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
             // Refetch to get complete data with joined profiles
@@ -63,7 +63,7 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
         }
       )
       .subscribe((status) => {
-        console.log('Subscription status:', status)
+        // console.log('Subscription status:', status)
       })
 
     return () => {
@@ -83,12 +83,12 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
         .limit(200)
 
       if (messagesError) {
-        console.error('Fetch error:', messagesError)
+        // console.error('Fetch error:', messagesError)
         throw messagesError
       }
 
       if (!messagesData || messagesData.length === 0) {
-        console.log('No messages found')
+        // console.log('No messages found')
         setMessages([])
         return
       }
@@ -103,7 +103,7 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
         .in('id', userIds)
 
       if (profilesError) {
-        console.error('Profiles fetch error:', profilesError)
+        // console.error('Profiles fetch error:', profilesError)
         // Still show messages even if profiles fail
         setMessages(messagesData.map((msg: any) => ({
           ...msg,
@@ -119,10 +119,10 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
         profiles: profilesMap.get(msg.user_id) || null
       }))
       
-      console.log('Fetched messages:', messagesWithProfiles.length)
+      // console.log('Fetched messages:', messagesWithProfiles.length)
       setMessages(messagesWithProfiles)
     } catch (error) {
-      console.error('Error fetching messages:', error)
+      // console.error('Error fetching messages:', error)
     } finally {
       setLoading(false)
     }
@@ -163,7 +163,7 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
       // Fetch messages to ensure we have the latest
       await fetchMessages()
     } catch (error) {
-      console.error('Error sending message:', error)
+      // console.error('Error sending message:', error)
       alert('Failed to send message')
       // Restore message in input on error
       setNewMessage(messageToSend)
@@ -197,7 +197,7 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
       setEditingMessageId(null)
       setEditedMessage('')
     } catch (error) {
-      console.error('Error editing message:', error)
+      // console.error('Error editing message:', error)
       alert('Failed to edit message')
     }
   }
@@ -220,7 +220,7 @@ export default function GlobalChatWindow({ onBack }: GlobalChatWindowProps) {
 
       if (error) throw error
     } catch (error) {
-      console.error('Error deleting message:', error)
+      // console.error('Error deleting message:', error)
       alert('Failed to delete message')
     }
   }

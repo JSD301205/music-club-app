@@ -1,7 +1,7 @@
 # 🛠️ Upcoming Developer Implementations
 
-1. **Email Notification for Unread Messages**
-   - Implement a system to send email notifications to users when they receive an unread message, using Supabase Edge Functions and an external email provider (e.g., SendGrid, Resend).
+<!-- 1. **Email Notification for Unread Messages**
+   - Implement a system to send email notifications to users when they receive an unread message, using Supabase Edge Functions and an external email provider (e.g., SendGrid, Resend). -->
 
 2. **Team Card Linking to Community Profiles**
    - In the `/team` section, make each team member card clickable so that pressing it navigates to their `/community/[username]` profile page (e.g., clicking David J Sharon goes to `/community/jsd`).
@@ -44,8 +44,8 @@
 14. **Event Live Streaming/Jammming**
     - Stream live performances to wider audience with chat integration and recording archive.
 
-15. **Collaboration Project Board**
-    - Kanban-style board for ongoing music projects (covers, originals) with task assignments and file sharing.
+<!-- 15. **Collaboration Project Board**
+    - Kanban-style board for ongoing music projects (covers, originals) with task assignments and file sharing. -->
 
 16. **Alumni Network**
    - Separate section for alumni profiles, networking, and potential guest performances at events.
@@ -55,12 +55,9 @@
    - Preview files in chat
    - Supabase Storage integration
 
-<!-- 18. **Notifications**
-   - Email notifications -->
-
-19. **Band Profiles**
+18. **Band Profiles**
    - Showcase members and roles on band pages with Performance history
 
-20. **Migrate to DB**
+19. **Migrate to DB**
    - Migrate all the local stored data (/Team, /Band, etcx) to DB
 
