@@ -111,14 +111,24 @@ export default function UserBadgesDisplay({ userId }: UserBadgesDisplayProps) {
             <div className="text-2xl font-bold text-white">{userBadges.length}</div>
             <div className="text-sm text-gray-400">Total Badges</div>
           </div>
-          {Object.entries(badgesByCategory).slice(0, 3).map(([category, badges]) => (
-            <div key={category} className="bg-white/5 rounded-lg p-3">
-              <div className="text-2xl font-bold text-white">{badges.length}</div>
-              <div className="text-sm text-gray-400 capitalize">
-                {category.replace('_', ' ')}
-              </div>
+          <div className="bg-white/5 rounded-lg p-3">
+            <div className="text-2xl font-bold text-purple-400">
+              {badgesByCategory['performances']?.length || 0}
             </div>
-          ))}
+            <div className="text-sm text-gray-400">Performances</div>
+          </div>
+          <div className="bg-white/5 rounded-lg p-3">
+            <div className="text-2xl font-bold text-blue-400">
+              {badgesByCategory['events']?.length || 0}
+            </div>
+            <div className="text-sm text-gray-400">Events</div>
+          </div>
+          <div className="bg-white/5 rounded-lg p-3">
+            <div className="text-2xl font-bold text-yellow-400">
+              {Object.keys(badgesByCategory).length}
+            </div>
+            <div className="text-sm text-gray-400">Categories</div>
+          </div>
         </div>
       </div>
     </div>
