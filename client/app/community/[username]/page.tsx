@@ -7,6 +7,9 @@ import { FaGuitar, FaMusic, FaSpotify, FaEnvelope, FaCalendar } from 'react-icon
 export default async function UserProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params
   const supabase = await createClient()
+  
+  // Get current user (if logged in)
+  const { data: { user } } = await supabase.auth.getUser()
 
   const { data: profile, error } = await supabase
     .from('profiles')
@@ -104,20 +107,18 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
                 </div>
               </div>
 
-              {/* Message Button */}
-              {/* Hide Send Message button if viewing own profile */}
-              {typeof window !== 'undefined' &&
-                userProfile.username !== (typeof window !== 'undefined' ? (window.localStorage.getItem('username') || '') : '') && (
-                  <div className="mt-16 md:mt-20">
-                    <Link
-                      href={`/community/messages?user=${userProfile.username}`}
-                      className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-all"
-                    >
-                      <FaEnvelope />
-                      Send Message
-                    </Link>
-                  </div>
-                )}
+              {/* Message Button - Only show if logged in and not viewing own profile */}
+              {user && userProfile.id !== user.id && (
+                <div className="mt-16 md:mt-20">
+                  <Link
+                    href={`/community/messages?user=${userProfile.username}`}
+                    className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-all"
+                  >
+                    <FaEnvelope />
+                    Send Message
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* Bio */}
@@ -200,6 +201,14 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
           >
             ← Back to Community
           </Link>
+          {!user && (
+            <Link
+              href="/auth/login"
+              className="inline-block ml-4 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all"
+            >
+              Login to Message
+            </Link>
+          )}
         </div>
       </div>
     </div>
