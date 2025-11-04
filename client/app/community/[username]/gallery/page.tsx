@@ -69,11 +69,15 @@ export default function UserGalleryPage() {
           .order('year', { ascending: false })
           .order('created_at', { ascending: false })
 
+        if (galleryError) {
+          console.error('Error fetching gallery items:', galleryError)
+        }
+
         // Map to match GalleryItem component structure
-        const mappedItems = (galleryItems || []).map(item => ({
+        const mappedItems: GalleryItemType[] = (galleryItems || []).map((item: any) => ({
           ...item,
           videoUrl: item.video_url // Map video_url to videoUrl for component compatibility
-        })) as GalleryItemType[]
+        }))
 
         setItems(mappedItems)
       } catch (err) {
