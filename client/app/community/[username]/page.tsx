@@ -2,7 +2,7 @@ import { createClient } from '@/app/lib/supabase-server'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { FaGuitar, FaMusic, FaSpotify, FaEnvelope, FaCalendar } from 'react-icons/fa'
+import { FaGuitar, FaMusic, FaSpotify, FaEnvelope, FaCalendar, FaImage } from 'react-icons/fa'
 import UserBadgesDisplay from '@/app/components/badges/UserBadgesDisplay'
 
 export default async function UserProfilePage({ params }: { params: Promise<{ username: string }> }) {
@@ -108,15 +108,34 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
                 </div>
               </div>
 
-              {/* Message Button - Only show if logged in and not viewing own profile */}
+              {/* Action Buttons - Only show if logged in and not viewing own profile */}
               {user && userProfile.id !== user.id && (
-                <div className="mt-16 md:mt-20">
+                <div className="mt-16 md:mt-20 flex flex-col gap-3">
                   <Link
                     href={`/community/messages?user=${userProfile.username}`}
-                    className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-all"
+                    className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium flex items-center gap-2 transition-all justify-center"
                   >
                     <FaEnvelope />
                     Send Message
+                  </Link>
+                  <Link
+                    href={`/community/${userProfile.username}/gallery`}
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-2 transition-all justify-center"
+                  >
+                    <FaImage />
+                    View Gallery
+                  </Link>
+                </div>
+              )}
+              {/* Gallery button for all users if not logged in or viewing own profile */}
+              {(!user || userProfile.id === user.id) && (
+                <div className="mt-16 md:mt-20">
+                  <Link
+                    href={`/community/${userProfile.username}/gallery`}
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-2 transition-all justify-center"
+                  >
+                    <FaImage />
+                    View Gallery
                   </Link>
                 </div>
               )}
