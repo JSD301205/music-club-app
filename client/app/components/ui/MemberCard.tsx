@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { FaGithub, FaLinkedin, FaInstagram, FaChevronRight } from 'react-icons/fa';
 import { TeamMember } from '../../data/team';
-import { getUsernameFromName } from '../../utils/nameToUsername';
+import { fetchUsernameMappings, getUsernameFromName } from '../../utils/nameToUsername';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/app/lib/supabase-client';
 
@@ -16,40 +16,46 @@ interface MemberCardProps {
 const MemberCard = ({ member }: MemberCardProps) => {
   const [isProfileVisible, setIsProfileVisible] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
-  const username = getUsernameFromName(member.name);
+  const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
     
-    const checkProfileVisibility = async () => {
-      if (!username) {
-        setIsLoading(false);
-        return;
-      }
-
+    const initializeCard = async () => {
       try {
+        // Fetch username mappings from database
+        const mappings = await fetchUsernameMappings();
+        const resolvedUsername = getUsernameFromName(member.name, mappings);
+        setUsername(resolvedUsername);
+
+        if (!resolvedUsername) {
+          setIsLoading(false);
+          return;
+        }
+
+        // Check profile visibility
         const { data, error } = await supabase
           .from('profiles')
           .select('is_visible_in_community')
-          .eq('username', username)
+          .eq('username', resolvedUsername)
           .single();
 
         if (error) {
-          console.warn(`Profile not found for username: ${username}`);
+          console.warn(`Profile not found for username: ${resolvedUsername}`);
           setIsProfileVisible(false);
         } else {
           setIsProfileVisible((data as { is_visible_in_community: boolean })?.is_visible_in_community ?? false);
         }
       } catch (err) {
-        console.error('Error checking profile visibility:', err);
+        console.error('Error initializing member card:', err);
         setIsProfileVisible(false);
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkProfileVisibility();
-  }, [username]);
+    initializeCard();
+  }, [member.name]);
 
   const canLinkToProfile = username && isProfileVisible && !isLoading;
   const profileUrl = canLinkToProfile ? `/community/${username}` : null;

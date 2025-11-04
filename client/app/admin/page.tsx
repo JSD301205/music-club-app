@@ -220,6 +220,12 @@ export default function AdminPage() {
             Manage Team
           </button>
           <button
+            onClick={() => router.push('/admin/team-username-mappings')}
+            className="p-3 bg-secondary-600 hover:bg-secondary-700 text-white rounded-lg transition-colors text-sm font-medium"
+          >
+            Team Profile Links
+          </button>
+          <button
             onClick={() => router.push('/admin/resources')}
             className="p-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors text-sm font-medium"
           >
