@@ -15,6 +15,13 @@ interface UsernameMapping {
   updated_at: string;
 }
 
+// Type for insert/update operations
+type MappingInsert = {
+  team_member_name: string;
+  username: string;
+  notes: string | null;
+};
+
 export default function TeamUsernameMappingsAdmin() {
   const [mappings, setMappings] = useState<UsernameMapping[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,9 +44,9 @@ export default function TeamUsernameMappingsAdmin() {
   const fetchMappings = async () => {
     try {
       setLoading(true);
-      const { data, error: fetchError } = await supabase
+      const { data, error: fetchError } = await (supabase
         .from('team_member_username_mappings')
-        .select('*')
+        .select('*') as any)
         .order('team_member_name', { ascending: true });
 
       if (fetchError) throw fetchError;
@@ -59,14 +66,15 @@ export default function TeamUsernameMappingsAdmin() {
         return;
       }
 
+      const insertData: MappingInsert = {
+        team_member_name: formData.team_member_name,
+        username: formData.username,
+        notes: formData.notes || null,
+      };
+
       const { error: insertError } = await supabase
         .from('team_member_username_mappings')
-        // @ts-ignore - Table not in generated types yet
-        .insert({
-          team_member_name: formData.team_member_name,
-          username: formData.username,
-          notes: formData.notes || null,
-        });
+        .insert(insertData as any);
 
       if (insertError) throw insertError;
 
@@ -84,15 +92,15 @@ export default function TeamUsernameMappingsAdmin() {
       const mapping = mappings.find(m => m.id === id);
       if (!mapping) return;
 
-      const { error: updateError } = await supabase
-        .from('team_member_username_mappings')
-        // @ts-ignore - Table not in generated types yet
-        .update({
-          team_member_name: formData.team_member_name || mapping.team_member_name,
-          username: formData.username || mapping.username,
-          notes: formData.notes || mapping.notes,
-        })
-        .eq('id', id);
+      const updateData: Partial<MappingInsert> = {
+        team_member_name: formData.team_member_name || mapping.team_member_name,
+        username: formData.username || mapping.username,
+        notes: formData.notes || mapping.notes,
+      };
+
+      // Type assertion for the entire query chain
+      const query: any = supabase.from('team_member_username_mappings');
+      const { error: updateError } = await query.update(updateData).eq('id', id);
 
       if (updateError) throw updateError;
 
@@ -109,9 +117,9 @@ export default function TeamUsernameMappingsAdmin() {
     if (!confirm('Are you sure you want to delete this mapping?')) return;
 
     try {
-      const { error: deleteError } = await supabase
+      const { error: deleteError } = await (supabase
         .from('team_member_username_mappings')
-        .delete()
+        .delete() as any)
         .eq('id', id);
 
       if (deleteError) throw deleteError;
@@ -124,9 +132,8 @@ export default function TeamUsernameMappingsAdmin() {
 
   const handleToggleActive = async (id: number, currentStatus: boolean) => {
     try {
-      const { error: updateError } = await supabase
-        .from('team_member_username_mappings')
-        // @ts-ignore - Table not in generated types yet
+      const query: any = supabase.from('team_member_username_mappings');
+      const { error: updateError } = await query
         .update({ is_active: !currentStatus })
         .eq('id', id);
 

@@ -64,9 +64,9 @@ export const nameToUsernameMap: Record<string, string> = {
 export async function fetchUsernameMappings(): Promise<Record<string, string>> {
   try {
     const supabase = createClient();
-    const { data, error } = await supabase
+    const { data, error } = await (supabase
       .from('team_member_username_mappings')
-      .select('team_member_name, username')
+      .select('team_member_name, username') as any)
       .eq('is_active', true);
 
     if (error) {
@@ -76,8 +76,8 @@ export async function fetchUsernameMappings(): Promise<Record<string, string>> {
 
     // Convert array to map
     const mappings: Record<string, string> = {};
-    data?.forEach(({ team_member_name, username }) => {
-      mappings[team_member_name] = username;
+    data?.forEach((row: { team_member_name: string; username: string }) => {
+      mappings[row.team_member_name] = row.username;
     });
 
     return mappings;
