@@ -26,8 +26,9 @@
 8. **Mobile App (PWA)**
     - Convert to Progressive Web App for better mobile experience with offline capabilities and push notifications.
 
-9. **Member Achievements & Badges**
+<!-- 9. **Member Achievements & Badges**
    - Award badges for participation milestones (events attended, jam sessions, performances) to encourage engagement.
+   - Added cast column to gallery_items for tracking photo appearances -->
 
 10. **Song/Setlist Sharing**
     - Members can share and collaboratively edit setlists, chord sheets, and song suggestions for events.

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { FaGuitar, FaMusic, FaSpotify, FaEnvelope, FaCalendar } from 'react-icons/fa'
+import UserBadgesDisplay from '@/app/components/badges/UserBadgesDisplay'
 
 export default async function UserProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params
@@ -128,6 +129,9 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
                 <p className="text-gray-300 text-lg leading-relaxed">{userProfile.bio}</p>
               </div>
             )}
+
+            {/* Badges & Achievements */}
+            <UserBadgesDisplay userId={userProfile.id} />
 
             {/* Instruments */}
             {(userProfile.instruments as string[])?.length > 0 && (
