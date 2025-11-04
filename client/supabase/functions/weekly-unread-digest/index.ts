@@ -140,7 +140,8 @@ serve(async (req: Request) => {
         const errText = await emailResponse.text().catch(() => '')
         console.error(`[weekly-unread-digest] EmailJS error for user ${profile.id}:`, { 
           status: emailResponse.status, 
-          body: errText 
+          body: errText,
+          email_data: emailData,
         })
         skipReasons['email_failed'] = (skipReasons['email_failed'] || 0) + 1
         emailsSkipped++
