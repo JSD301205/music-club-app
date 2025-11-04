@@ -2,11 +2,86 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { useBandsWithMembers } from '../hooks/useBandsTeam';
 import AnimatedSection from '../components/layout/AnimatedSection';
+import { fetchBandMemberUsernameMappings, getBandMemberUsernameFromName } from '../utils/bandMemberToUsername';
+import { createClient } from '@/app/lib/supabase-client';
+import { FaChevronRight } from 'react-icons/fa';
+
+interface MemberWithLink {
+  id: number;
+  name: string;
+  instrument: string;
+  image: string;
+  username: string | null;
+  isVisible: boolean;
+  canLink: boolean;
+}
 
 export default function InternalBandsPage() {
   const { bands, loading, error } = useBandsWithMembers({ is_published: true });
+  const [membersWithLinks, setMembersWithLinks] = useState<Map<number, MemberWithLink>>(new Map());
+  const [isLoadingMappings, setIsLoadingMappings] = useState(true);
+
+  useEffect(() => {
+    const initializeMemberLinks = async () => {
+      if (!bands || bands.length === 0) return;
+
+      const supabase = createClient();
+      const mappings = await fetchBandMemberUsernameMappings();
+      const memberLinksMap = new Map<number, MemberWithLink>();
+
+      // Process all band members
+      for (const band of bands) {
+        if (!band.band_members) continue;
+
+        for (const member of band.band_members) {
+          const username = getBandMemberUsernameFromName(member.name, mappings);
+          
+          if (username) {
+            try {
+              // Check profile visibility
+              const { data } = await supabase
+                .from('profiles')
+                .select('is_visible_in_community')
+                .eq('username', username)
+                .single();
+
+              const isVisible = data ? (data as any).is_visible_in_community ?? false : false;
+
+              memberLinksMap.set(member.id, {
+                ...member,
+                username,
+                isVisible,
+                canLink: isVisible,
+              });
+            } catch (err) {
+              memberLinksMap.set(member.id, {
+                ...member,
+                username,
+                isVisible: false,
+                canLink: false,
+              });
+            }
+          } else {
+            memberLinksMap.set(member.id, {
+              ...member,
+              username: null,
+              isVisible: false,
+              canLink: false,
+            });
+          }
+        }
+      }
+
+      setMembersWithLinks(memberLinksMap);
+      setIsLoadingMappings(false);
+    };
+
+    initializeMemberLinks();
+  }, [bands]);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
@@ -39,7 +114,7 @@ export default function InternalBandsPage() {
             </div>
           )}
 
-          {!loading && !error && (
+          {!loading && !error && !isLoadingMappings && (
             <div className="grid grid-cols-1 gap-10 max-w-5xl mx-auto">
               {bands.map((band, index) => (
               <motion.div
@@ -47,26 +122,50 @@ export default function InternalBandsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-gray-800/50 backdrop-blur-sm rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                className="bg-gray-800/50 backdrop-blur-sm rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300"
               >
                 <div className="flex flex-col md:flex-row">
                   {/* Left side - Member photos grid */}
                   <div className="w-full md:w-1/2 flex items-center justify-center p-8">
                     <div className={`grid ${band.band_members?.length <= 6 ? 'grid-cols-3' : 'grid-cols-3'} gap-2 p-4 rounded-lg overflow-hidden w-full max-w-md`}>
-                      {band.band_members?.map((member) => (
-                        <div key={member.id} className="aspect-square relative overflow-hidden group">
-                          <Image
-                            src={member.image}
-                            alt={member.name}
-                            fill
-                            className="object-cover transition-transform duration-300 group-hover:scale-110"
-                          />
-                          <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <p className="text-white font-medium text-center px-2">{member.name}</p>
-                            <p className="text-primary-300 text-sm text-center px-2">{member.instrument}</p>
+                      {band.band_members?.map((member) => {
+                        const memberWithLink = membersWithLinks.get(member.id);
+                        const canLink = memberWithLink?.canLink ?? false;
+                        const username = memberWithLink?.username;
+                        
+                        const MemberCard = () => (
+                          <div className={`aspect-square relative overflow-hidden group ${canLink ? 'cursor-pointer' : ''}`}>
+                            <Image
+                              src={member.image}
+                              alt={member.name}
+                              fill
+                              className={`object-cover transition-transform duration-300 ${canLink ? 'group-hover:scale-110' : ''}`}
+                            />
+                            {canLink && (
+                              <div className="absolute top-1 right-1 z-20 bg-primary-500/80 backdrop-blur-sm rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <FaChevronRight className="w-3 h-3 text-white" />
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              <p className="text-white font-medium text-center px-2">{member.name}</p>
+                              <p className="text-primary-300 text-sm text-center px-2">{member.instrument}</p>
+                              {canLink && (
+                                <p className="text-xs text-gray-300 mt-1">Click to view profile</p>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+
+                        if (canLink && username) {
+                          return (
+                            <Link key={member.id} href={`/community/${username}`}>
+                              <MemberCard />
+                            </Link>
+                          );
+                        }
+
+                        return <MemberCard key={member.id} />;
+                      })}
                     </div>
                   </div>
                   
@@ -77,11 +176,32 @@ export default function InternalBandsPage() {
                     
                     <h4 className="text-lg font-semibold text-white mb-3">Members & Instruments</h4>
                     <ul className="list-disc pl-5 text-gray-300 space-y-2">
-                      {band.band_members?.map((member) => (
-                        <li key={member.id}>
-                          <span className="font-medium">{member.name}</span> - <span className="text-gray-400">{member.instrument}</span>
-                        </li>
-                      ))}
+                      {band.band_members?.map((member) => {
+                        const memberWithLink = membersWithLinks.get(member.id);
+                        const canLink = memberWithLink?.canLink ?? false;
+                        const username = memberWithLink?.username;
+
+                        if (canLink && username) {
+                          return (
+                            <li key={member.id}>
+                              <Link 
+                                href={`/community/${username}`}
+                                className="hover:text-primary-400 transition-colors duration-200 inline-flex items-center gap-1"
+                              >
+                                <span className="font-medium">{member.name}</span>
+                                <FaChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </Link>
+                              {' '}- <span className="text-gray-400">{member.instrument}</span>
+                            </li>
+                          );
+                        }
+
+                        return (
+                          <li key={member.id}>
+                            <span className="font-medium">{member.name}</span> - <span className="text-gray-400">{member.instrument}</span>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
                 </div>

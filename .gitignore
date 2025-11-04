@@ -1,2 +1,7 @@
 *.md
 *.sql
+client/set-edge-function-secrets.ps1
+client/set-edge-function-secrets.sh
+
+node_modules/
+client/node_modules/
