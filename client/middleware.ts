@@ -91,8 +91,15 @@ export async function middleware(request: NextRequest) {
     }
     
     // Protected routes that require authentication
-    const protectedRoutes = ['/community', '/settings', '/jam-board']
-    const isProtectedRoute = protectedRoutes.some(route => url.pathname.startsWith(route))
+    const protectedRoutes = ['/settings', '/jam-board']
+    
+    // Check if it's the community list page (not individual profiles)
+    const isCommunityListPage = url.pathname === '/community'
+    const isCommunityMessagesPage = url.pathname.startsWith('/community/messages')
+    
+    const isProtectedRoute = protectedRoutes.some(route => url.pathname.startsWith(route)) || 
+                            isCommunityListPage || 
+                            isCommunityMessagesPage
     
     // If trying to access protected route without session, redirect to login
     if (isProtectedRoute && !session?.user) {
