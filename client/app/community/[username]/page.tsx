@@ -150,7 +150,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
             )}
 
             {/* Badges & Achievements */}
-            <UserBadgesDisplay userId={userProfile.id} />
+            <UserBadgesDisplay userId={userProfile.id} username={userProfile.username} />
 
             {/* Instruments */}
             {(userProfile.instruments as string[])?.length > 0 && (

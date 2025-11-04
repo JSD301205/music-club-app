@@ -8,16 +8,49 @@ import { FaTrophy } from 'react-icons/fa'
 
 interface UserBadgesDisplayProps {
   userId: string
+  username?: string
 }
 
-export default function UserBadgesDisplay({ userId }: UserBadgesDisplayProps) {
+export default function UserBadgesDisplay({ userId, username }: UserBadgesDisplayProps) {
   const [userBadges, setUserBadges] = useState<(UserBadge & { badge: Badge })[]>([])
+  const [galleryStats, setGalleryStats] = useState({ performances: 0, events: 0, total: 0 })
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
   useEffect(() => {
     fetchUserBadges()
-  }, [userId])
+    if (username) {
+      fetchGalleryStats()
+    }
+  }, [userId, username])
+
+  const fetchGalleryStats = async () => {
+    try {
+      if (!username) return
+
+      // Get all gallery items where this user is featured
+      const { data: galleryItems, error } = await supabase
+        .from('gallery_items')
+        .select('category')
+        .contains('featured_members', [username])
+
+      if (error) throw error
+
+      const items = (galleryItems || []) as { category: string }[]
+      const performanceCount = items.filter(item => item.category === 'performances').length
+      const eventCount = items.filter(item => 
+        item.category === 'performances' || item.category === 'team' || item.category === 'jams'
+      ).length
+
+      setGalleryStats({
+        performances: performanceCount,
+        events: eventCount,
+        total: items.length
+      })
+    } catch (error) {
+      console.error('Error fetching gallery stats:', error)
+    }
+  }
 
   const fetchUserBadges = async () => {
     try {
@@ -113,21 +146,25 @@ export default function UserBadgesDisplay({ userId }: UserBadgesDisplayProps) {
           </div>
           <div className="bg-white/5 rounded-lg p-3">
             <div className="text-2xl font-bold text-purple-400">
-              {badgesByCategory['performances']?.length || 0}
+              {username ? galleryStats.performances : badgesByCategory['performances']?.length || 0}
             </div>
-            <div className="text-sm text-gray-400">Performances</div>
+            <div className="text-sm text-gray-400">
+              {username ? 'Performances' : 'Performance Badges'}
+            </div>
           </div>
           <div className="bg-white/5 rounded-lg p-3">
             <div className="text-2xl font-bold text-blue-400">
-              {badgesByCategory['events']?.length || 0}
+              {username ? galleryStats.total : badgesByCategory['events']?.length || 0}
             </div>
-            <div className="text-sm text-gray-400">Events</div>
+            <div className="text-sm text-gray-400">
+              {username ? 'Gallery Items' : 'Event Badges'}
+            </div>
           </div>
           <div className="bg-white/5 rounded-lg p-3">
             <div className="text-2xl font-bold text-yellow-400">
               {Object.keys(badgesByCategory).length}
             </div>
-            <div className="text-sm text-gray-400">Categories</div>
+            <div className="text-sm text-gray-400">Badge Categories</div>
           </div>
         </div>
       </div>
