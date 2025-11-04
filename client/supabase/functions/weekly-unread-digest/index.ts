@@ -87,12 +87,14 @@ serve(async (req: Request) => {
 
     let emailsSent = 0
     let emailsSkipped = 0
+    const skipReasons: { [key: string]: number } = {}
 
     // Send digest email to each user
     for (const profile of profiles || []) {
-      // Skip if user has disabled email notifications
-      if (!profile.email_notifications_enabled) {
+      // Skip if user has disabled email notifications (NULL is treated as enabled for backwards compatibility)
+      if (profile.email_notifications_enabled === false) {
         console.log(`[weekly-unread-digest] Skipping user ${profile.id} - notifications disabled`)
+        skipReasons['notifications_disabled'] = (skipReasons['notifications_disabled'] || 0) + 1
         emailsSkipped++
         continue
       }
@@ -100,6 +102,7 @@ serve(async (req: Request) => {
       // Skip if user has no email
       if (!profile.email) {
         console.log(`[weekly-unread-digest] Skipping user ${profile.id} - no email address`)
+        skipReasons['no_email'] = (skipReasons['no_email'] || 0) + 1
         emailsSkipped++
         continue
       }
@@ -139,12 +142,23 @@ serve(async (req: Request) => {
           status: emailResponse.status, 
           body: errText 
         })
+        skipReasons['email_failed'] = (skipReasons['email_failed'] || 0) + 1
         emailsSkipped++
         continue
       }
 
       emailsSent++
       console.log(`[weekly-unread-digest] Email sent to ${profile.email}`)
+      
+      // Update last_email_sent_at timestamp in profile
+      const { error: updateError } = await supabaseClient
+        .from('profiles')
+        .update({ last_email_sent_at: new Date().toISOString() })
+        .eq('id', profile.id)
+      
+      if (updateError) {
+        console.error(`[weekly-unread-digest] Failed to update last_email_sent_at for user ${profile.id}:`, updateError)
+      }
       
       // Add small delay to avoid rate limiting
       await new Promise(resolve => setTimeout(resolve, 100))
@@ -156,6 +170,7 @@ serve(async (req: Request) => {
       users_with_unread: unreadByUser.size,
       emails_sent: emailsSent,
       emails_skipped: emailsSkipped,
+      skip_reasons: skipReasons,
       timestamp: new Date().toISOString(),
     }
 

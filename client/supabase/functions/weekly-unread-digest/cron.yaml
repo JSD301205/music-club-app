@@ -1,10 +1,10 @@
 # Cron schedule for weekly unread messages digest
-# Runs every Tuesday at 9:55 PM IST (4:25 PM UTC / 16:25 UTC)
+# TESTING: Runs every Tuesday at 11:12 PM IST (5:42 PM UTC / 17:42 UTC)
 # To convert to your timezone: https://www.worldtimebuddy.com/
 
 # Format: minute hour day-of-month month day-of-week
-# "25 16 * * 2" = Every Tuesday at 4:25 PM UTC (9:55 PM IST)
+# "42 17 * * 2" = Every Tuesday at 5:42 PM UTC (11:12 PM IST)
 # Original schedule: "0 23 * * 0" = Every Sunday at 11:00 PM UTC
 
-schedule: "25 16 * * 2"
+schedule: "42 17 * * 2"
    
