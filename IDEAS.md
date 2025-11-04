@@ -3,10 +3,10 @@
 <!-- 1. **Email Notification for Unread Messages**
    - Implement a system to send email notifications to users when they receive an unread message, using Supabase Edge Functions and an external email provider (e.g., SendGrid, Resend). -->
 
-2. **Team Card Linking to Community Profiles**
+<!-- 2. **Team Card Linking to Community Profiles**
    - In the `/team` section, make each team member card clickable so that pressing it navigates to their `/community/[username]` profile page (e.g., clicking David J Sharon goes to `/community/jsd`).
    - Whole card as a link, show chevron, disable link for private profiles.
-   - Showcase members and roles on band pages with Performance history
+   - Showcase members and roles on band pages with Performance history -->
 
 <!-- 3. **Google & GitHub OAuth** 
    — Enable Supabase OAuth sign-in; ensure profile creation and username collision handling. -->
@@ -15,7 +15,7 @@
    - Multi-user chat rooms with real-time messaging, membership controls, and unread message tracking.
 
 5. **Event RSVP & Attendance Tracking**
-   - Allow members to RSVP for events, track attendance, and send reminders before events.
+   - Allow members to RSVP for events and track attendance.
 
 6. **Practice Room Booking System**
    - Online booking calendar for institute practice rooms with time slots and conflict prevention.

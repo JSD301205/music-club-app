@@ -1,19 +1,65 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { FaGithub, FaLinkedin, FaInstagram } from 'react-icons/fa';
+import { FaGithub, FaLinkedin, FaInstagram, FaChevronRight } from 'react-icons/fa';
 import { TeamMember } from '../../data/team';
+import { getUsernameFromName } from '../../utils/nameToUsername';
+import { useState, useEffect } from 'react';
+import { createClient } from '@/app/lib/supabase-client';
 
 interface MemberCardProps {
   member: TeamMember;
 }
 
 const MemberCard = ({ member }: MemberCardProps) => {
-  return (
+  const [isProfileVisible, setIsProfileVisible] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const username = getUsernameFromName(member.name);
+
+  useEffect(() => {
+    const supabase = createClient();
+    
+    const checkProfileVisibility = async () => {
+      if (!username) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('is_visible_in_community')
+          .eq('username', username)
+          .single();
+
+        if (error) {
+          console.warn(`Profile not found for username: ${username}`);
+          setIsProfileVisible(false);
+        } else {
+          setIsProfileVisible((data as { is_visible_in_community: boolean })?.is_visible_in_community ?? false);
+        }
+      } catch (err) {
+        console.error('Error checking profile visibility:', err);
+        setIsProfileVisible(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkProfileVisibility();
+  }, [username]);
+
+  const canLinkToProfile = username && isProfileVisible && !isLoading;
+  const profileUrl = canLinkToProfile ? `/community/${username}` : null;
+
+  const CardContent = () => (
     <motion.div
-      whileHover={{ y: -5 }}
-      className="group bg-gray-800 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300"
+      whileHover={canLinkToProfile ? { y: -5 } : {}}
+      className={`group bg-gray-800 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 ${
+        canLinkToProfile ? 'cursor-pointer' : ''
+      }`}
     >
       <div className="aspect-square relative w-full overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900/50 to-transparent z-10" />
@@ -22,13 +68,22 @@ const MemberCard = ({ member }: MemberCardProps) => {
           alt={member.name}
           fill
           style={{ objectFit: 'cover' }}
-          className="rounded-t-2xl transform group-hover:scale-110 transition-transform duration-700"
+          className={`rounded-t-2xl transform transition-transform duration-700 ${
+            canLinkToProfile ? 'group-hover:scale-110' : ''
+          }`}
         />
+        {canLinkToProfile && (
+          <div className="absolute top-4 right-4 z-20 bg-primary-500/80 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <FaChevronRight className="w-4 h-4 text-white" />
+          </div>
+        )}
       </div>
       
       <div className="p-6 text-center space-y-4">
         <div>
-          <h3 className="text-xl font-bold text-white group-hover:text-primary-400 transition-colors duration-300">
+          <h3 className={`text-xl font-bold text-white transition-colors duration-300 ${
+            canLinkToProfile ? 'group-hover:text-primary-400' : ''
+          }`}>
             {member.name}
           </h3>
           <p className="text-primary-400 font-medium">{member.role}</p>
@@ -37,7 +92,7 @@ const MemberCard = ({ member }: MemberCardProps) => {
         <p className="text-gray-400 text-sm leading-relaxed">{member.bio}</p>
         
         {/* Social Links */}
-        <div className="flex justify-center space-x-4 pt-2">
+        <div className="flex justify-center space-x-4 pt-2" onClick={(e) => e.stopPropagation()}>
           {member.social?.github && (
             <motion.a
               href={member.social.github}
@@ -78,6 +133,16 @@ const MemberCard = ({ member }: MemberCardProps) => {
       </div>
     </motion.div>
   );
+
+  if (profileUrl) {
+    return (
+      <Link href={profileUrl} className="block">
+        <CardContent />
+      </Link>
+    );
+  }
+
+  return <CardContent />;
 };
 
 export default MemberCard;
