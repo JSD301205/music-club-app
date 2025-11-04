@@ -48,7 +48,8 @@ export default function AdminPage() {
     video_url: '',
     event: '',
     year: 2025,
-    order: 0
+    order: 0,
+    featured_members: []
   });
   const [galleryImageFile, setGalleryImageFile] = useState<File | null>(null);
 
@@ -115,7 +116,8 @@ export default function AdminPage() {
         video_url: '',
         event: '',
         year: parseInt(selectedYear),
-        order: 0
+        order: 0,
+        featured_members: []
       });
       setGalleryImageFile(null);
 
@@ -334,6 +336,25 @@ export default function AdminPage() {
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Must match the exact event title
+            </p>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Featured Members (Cast)
+            </label>
+            <input
+              type="text"
+              value={(newGalleryItem.featured_members as string[] || []).join(', ')}
+              onChange={(e) => {
+                const members = e.target.value.split(',').map(m => m.trim()).filter(m => m);
+                setNewGalleryItem({ ...newGalleryItem, featured_members: members });
+              }}
+              className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              placeholder="username1, username2, username3"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Enter usernames separated by commas. These members will appear in the photo/video and earn badges.
             </p>
           </div>
 

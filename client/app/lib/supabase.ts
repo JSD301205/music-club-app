@@ -33,6 +33,7 @@ export interface GalleryItem {
   event?: string;
   year: number;
   order: number;
+  featured_members?: string[]; // Array of usernames appearing in this gallery item
   created_at: string;
   updated_at: string;
 }
