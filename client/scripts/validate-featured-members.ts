@@ -95,7 +95,7 @@ async function validateFeaturedMembers() {
         title: item.title,
         issue: 'Contains duplicate usernames',
         currentValue: item.featured_members,
-        suggestedFix: Array.from(uniqueMembers)
+        suggestedFix: Array.from(uniqueMembers) as string[]
       })
     }
 
