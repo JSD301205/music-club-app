@@ -67,8 +67,8 @@ export default function UserGalleryPage() {
           .from('gallery_items')
           .select('*')
           .not('featured_members', 'is', null)
-          .order('year', { ascending: false })
-          .order('created_at', { ascending: false })
+          .order('year', { ascending: true })
+          .order('created_at', { ascending: true })
 
         if (galleryError) {
           console.error('Error fetching gallery items:', galleryError)
@@ -143,7 +143,7 @@ export default function UserGalleryPage() {
     return acc
   }, {} as Record<number, typeof items>)
 
-  const years = Object.keys(itemsByYear).sort((a, b) => parseInt(b) - parseInt(a))
+  const years = Object.keys(itemsByYear).sort((a, b) => parseInt(a) - parseInt(b))
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-gray-900 py-20 px-4">
