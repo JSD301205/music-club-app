@@ -143,7 +143,7 @@ export default function UserGalleryPage() {
     return acc
   }, {} as Record<number, typeof items>)
 
-  const years = Object.keys(itemsByYear).sort((a, b) => parseInt(a) - parseInt(b))
+  const years = Object.keys(itemsByYear).sort((a, b) => parseInt(b) - parseInt(a))
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-gray-900 py-20 px-4">
