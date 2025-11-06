@@ -41,10 +41,10 @@ export default function UserBadgesDisplay({ userId, username }: UserBadgesDispla
         item.featured_members && 
         Array.isArray(item.featured_members) && 
         item.featured_members.includes(username)
-      )
+      ) as Array<{ category: string; featured_members: string[] }>
 
-      const performanceCount = userItems.filter(item => item.category === 'performances').length
-      const eventCount = userItems.filter(item => 
+      const performanceCount = userItems.filter((item: any) => item.category === 'performances').length
+      const eventCount = userItems.filter((item: any) => 
         item.category === 'performances' || item.category === 'team' || item.category === 'jams'
       ).length
 
