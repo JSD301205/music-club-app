@@ -62,10 +62,11 @@ export default function UserGalleryPage() {
         setProfile(profileData as Profile)
 
         // Get all gallery items where this user is featured
+        // We'll fetch items and filter client-side for exact username match
         const { data: galleryItems, error: galleryError } = await supabase
           .from('gallery_items')
           .select('*')
-          .contains('featured_members', [username])
+          .not('featured_members', 'is', null)
           .order('year', { ascending: false })
           .order('created_at', { ascending: false })
 
@@ -73,8 +74,15 @@ export default function UserGalleryPage() {
           console.error('Error fetching gallery items:', galleryError)
         }
 
+        // Filter for exact username match (case-sensitive)
+        const filteredItems = (galleryItems || []).filter((item: any) => 
+          item.featured_members && 
+          Array.isArray(item.featured_members) && 
+          item.featured_members.includes(username)
+        )
+
         // Map to match GalleryItem component structure
-        const mappedItems: GalleryItemType[] = (galleryItems || []).map((item: any) => ({
+        const mappedItems: GalleryItemType[] = (filteredItems || []).map((item: any) => ({
           ...item,
           videoUrl: item.video_url // Map video_url to videoUrl for component compatibility
         }))

@@ -28,24 +28,30 @@ export default function UserBadgesDisplay({ userId, username }: UserBadgesDispla
     try {
       if (!username) return
 
-      // Get all gallery items where this user is featured
+      // Get all gallery items and filter for exact username match
       const { data: galleryItems, error } = await supabase
         .from('gallery_items')
-        .select('category')
-        .contains('featured_members', [username])
+        .select('category, featured_members')
+        .not('featured_members', 'is', null)
 
       if (error) throw error
 
-      const items = (galleryItems || []) as { category: string }[]
-      const performanceCount = items.filter(item => item.category === 'performances').length
-      const eventCount = items.filter(item => 
+      // Filter for exact username match (case-sensitive)
+      const userItems = (galleryItems || []).filter((item: any) =>
+        item.featured_members && 
+        Array.isArray(item.featured_members) && 
+        item.featured_members.includes(username)
+      )
+
+      const performanceCount = userItems.filter(item => item.category === 'performances').length
+      const eventCount = userItems.filter(item => 
         item.category === 'performances' || item.category === 'team' || item.category === 'jams'
       ).length
 
       setGalleryStats({
         performances: performanceCount,
         events: eventCount,
-        total: items.length
+        total: userItems.length
       })
     } catch (error) {
       console.error('Error fetching gallery stats:', error)
