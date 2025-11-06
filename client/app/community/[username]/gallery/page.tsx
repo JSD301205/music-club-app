@@ -134,7 +134,7 @@ export default function UserGalleryPage() {
     )
   }
 
-  // Group by year and sort items within each year by ID (descending = newest to oldest based on ID)
+  // Group by year and sort items within each year by order field (ascending = chronological)
   const itemsByYear = items.reduce((acc, item) => {
     const year = item.year
     if (!acc[year]) acc[year] = []
@@ -142,9 +142,9 @@ export default function UserGalleryPage() {
     return acc
   }, {} as Record<number, typeof items>)
 
-  // Sort items within each year by ID (descending)
+  // Sort items within each year by order field (ascending)
   Object.keys(itemsByYear).forEach(year => {
-    itemsByYear[parseInt(year)].sort((a, b) => b.id - a.id)
+    itemsByYear[parseInt(year)].sort((a, b) => a.order - b.order)
   })
 
   const years = Object.keys(itemsByYear).sort((a, b) => parseInt(b) - parseInt(a))
