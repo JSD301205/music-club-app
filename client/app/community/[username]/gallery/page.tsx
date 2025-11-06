@@ -75,8 +75,8 @@ export default function UserGalleryPage() {
         }
 
         // Filter for exact username match (case-sensitive)
-        console.log('🔍 Filtering gallery items for username:', username)
-        console.log('📊 Total items fetched:', galleryItems?.length || 0)
+        // console.log('🔍 Filtering gallery items for username:', username)
+        // console.log('📊 Total items fetched:', galleryItems?.length || 0)
         
         const filteredItems = (galleryItems || []).filter((item: any) => {
           const hasUsername = item.featured_members && 
@@ -84,20 +84,20 @@ export default function UserGalleryPage() {
             item.featured_members.includes(username)
           
           // Debug log for problematic item
-          if (item.id === 144) {
-            console.log('🐛 Item 144 check:', {
-              id: item.id,
-              title: item.title,
-              featured_members: item.featured_members,
-              hasUsername: hasUsername,
-              includes_check: item.featured_members?.includes(username)
-            })
-          }
+          // if (item.id === 144) {
+          //   console.log('🐛 Item 144 check:', {
+          //     id: item.id,
+          //     title: item.title,
+          //     featured_members: item.featured_members,
+          //     hasUsername: hasUsername,
+          //     includes_check: item.featured_members?.includes(username)
+          //   })
+          // }
           
           return hasUsername
         })
         
-        console.log('✅ Filtered items count:', filteredItems.length)
+        // console.log('✅ Filtered items count:', filteredItems.length)
 
         // Map to match GalleryItem component structure
         const mappedItems: GalleryItemType[] = (filteredItems || []).map((item: any) => ({

@@ -11,7 +11,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function checkData() {
-  console.log('Checking Supabase data...\n');
+  // console.log('Checking Supabase data...\n');
   
   // Check 2025 events
   const { data: events2025, error: eventsError } = await supabase
@@ -22,13 +22,13 @@ async function checkData() {
   if (eventsError) {
     console.error('Error fetching 2025 events:', eventsError);
   } else {
-    console.log(`Found ${events2025?.length || 0} events for 2025:`);
-    events2025?.forEach(event => {
-      console.log(`  - ${event.title} (${event.status})`);
-    });
+    // console.log(`Found ${events2025?.length || 0} events for 2025:`);
+    // events2025?.forEach(event => {
+    //   console.log(`  - ${event.title} (${event.status})`);
+    // });
   }
   
-  console.log('');
+  // console.log('');
   
   // Check 2025 gallery items with ID ordering
   const { data: gallery2025, error: galleryError } = await supabase
@@ -40,13 +40,13 @@ async function checkData() {
   if (galleryError) {
     console.error('Error fetching 2025 gallery items:', galleryError);
   } else {
-    console.log(`Found ${gallery2025?.length || 0} gallery items for 2025 (sorted by ID desc):`);
-    gallery2025?.slice(0, 10).forEach(item => {
-      console.log(`  - ID: ${item.id} | ${item.title} | Created: ${item.created_at}`);
-    });
-    if (gallery2025 && gallery2025.length > 10) {
-      console.log(`  ... and ${gallery2025.length - 10} more items`);
-    }
+    // console.log(`Found ${gallery2025?.length || 0} gallery items for 2025 (sorted by ID desc):`);
+    // gallery2025?.slice(0, 10).forEach(item => {
+    //   console.log(`  - ID: ${item.id} | ${item.title} | Created: ${item.created_at}`);
+    // });
+    // if (gallery2025 && gallery2025.length > 10) {
+    //   console.log(`  ... and ${gallery2025.length - 10} more items`);
+    // }
   }
 }
 

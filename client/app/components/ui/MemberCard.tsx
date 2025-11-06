@@ -41,7 +41,7 @@ const MemberCard = ({ member }: MemberCardProps) => {
           .single();
 
         if (error) {
-          console.warn(`Profile not found for username: ${resolvedUsername}`);
+          // console.warn(`Profile not found for username: ${resolvedUsername}`);
           setIsProfileVisible(false);
         } else {
           setIsProfileVisible((data as { is_visible_in_community: boolean })?.is_visible_in_community ?? false);

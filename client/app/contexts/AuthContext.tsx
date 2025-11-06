@@ -86,9 +86,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('AuthContext - Session loaded:', session ? 'exists' : 'none')
+      // console.log('AuthContext - Session loaded:', session ? 'exists' : 'none')
       const newUser = session?.user ?? null
-      console.log('AuthContext - Initial user:', newUser)
+      // console.log('AuthContext - Initial user:', newUser)
       setSession(session)
       setUser(newUser)
       if (session?.user) {
@@ -107,9 +107,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('AuthContext - Auth state changed:', _event, session)
+      // console.log('AuthContext - Auth state changed:', _event, session)
       const newUser = session?.user ?? null
-      console.log('AuthContext - Setting user to:', newUser)
+      // console.log('AuthContext - Setting user to:', newUser)
       setSession(session)
       setUser(newUser)
       if (session?.user) {

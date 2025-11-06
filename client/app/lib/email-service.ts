@@ -52,7 +52,7 @@ export async function sendMessageNotification({
     )
 
     if (response.status === 200) {
-      console.log('Email notification sent successfully to:', recipientEmail)
+      // console.log('Email notification sent successfully to:', recipientEmail)
       return { success: true }
     } else {
       console.error('Failed to send email notification:', response)
