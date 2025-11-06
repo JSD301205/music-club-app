@@ -67,8 +67,7 @@ export default function UserGalleryPage() {
           .from('gallery_items')
           .select('*')
           .not('featured_members', 'is', null)
-          .order('year', { ascending: true })
-          .order('created_at', { ascending: true })
+          .order('id', { ascending: true })
 
         if (galleryError) {
           console.error('Error fetching gallery items:', galleryError)
@@ -135,13 +134,18 @@ export default function UserGalleryPage() {
     )
   }
 
-  // Group by year
+  // Group by year and sort items within each year by ID (ascending = oldest to newest)
   const itemsByYear = items.reduce((acc, item) => {
     const year = item.year
     if (!acc[year]) acc[year] = []
     acc[year].push(item)
     return acc
   }, {} as Record<number, typeof items>)
+
+  // Sort items within each year by ID (ascending)
+  Object.keys(itemsByYear).forEach(year => {
+    itemsByYear[parseInt(year)].sort((a, b) => a.id - b.id)
+  })
 
   const years = Object.keys(itemsByYear).sort((a, b) => parseInt(b) - parseInt(a))
 
