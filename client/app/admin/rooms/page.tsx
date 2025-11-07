@@ -272,12 +272,73 @@ export default function AdminRoomsPage() {
               <FaPlus /> Add Room
             </button>
 
-            {/* Room Form */}
+            {/* Rooms List */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              {rooms.map((room) => (
+                <motion.div
+                  key={room.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                        {room.name}
+                      </h3>
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        room.is_active
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                          : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                      }`}>
+                        {room.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                  </div>
+                  {room.description && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      {room.description}
+                    </p>
+                  )}
+                  <p className="text-sm mb-2 text-gray-700 dark:text-gray-300">
+                    <strong>Capacity:</strong> {room.capacity}
+                  </p>
+                  {room.equipment_available.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">Equipment:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {room.equipment_available.map((eq, idx) => (
+                          <span key={idx} className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300">
+                            {eq}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEditRoom(room)}
+                      className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
+                    >
+                      <FaEdit className="inline mr-1" /> Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteRoom(room.id)}
+                      className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm"
+                    >
+                      <FaTrash className="inline mr-1" /> Delete
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Room Form - Positioned Below Rooms */}
             {showRoomForm && (
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md"
+                className="mt-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md"
               >
                 <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
                   {editingRoom ? 'Edit Room' : 'Add New Room'}
@@ -361,67 +422,6 @@ export default function AdminRoomsPage() {
                 </form>
               </motion.div>
             )}
-
-            {/* Rooms List */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {rooms.map((room) => (
-                <motion.div
-                  key={room.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                        {room.name}
-                      </h3>
-                      <span className={`text-xs px-2 py-1 rounded ${
-                        room.is_active
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                          : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                      }`}>
-                        {room.is_active ? 'Active' : 'Inactive'}
-                      </span>
-                    </div>
-                  </div>
-                  {room.description && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                      {room.description}
-                    </p>
-                  )}
-                  <p className="text-sm mb-2 text-gray-700 dark:text-gray-300">
-                    <strong>Capacity:</strong> {room.capacity}
-                  </p>
-                  {room.equipment_available.length > 0 && (
-                    <div className="mb-4">
-                      <p className="text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">Equipment:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {room.equipment_available.map((eq, idx) => (
-                          <span key={idx} className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-gray-700 dark:text-gray-300">
-                            {eq}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEditRoom(room)}
-                      className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
-                    >
-                      <FaEdit className="inline mr-1" /> Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteRoom(room.id)}
-                      className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm"
-                    >
-                      <FaTrash className="inline mr-1" /> Delete
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
           </div>
         )}
 
