@@ -49,19 +49,21 @@ export default function QuizCard({ announcement, user, onRefresh }: QuizCardProp
         .single()
 
       if (questionError) throw questionError
-      setQuestion(questionData)
+      
+      const question = questionData as any
+      setQuestion(question)
 
       // Fetch user's response if logged in
       if (user) {
         const { data: responseData } = await supabase
           .from('quiz_responses')
           .select('*')
-          .eq('question_id', questionData.id)
+          .eq('question_id', question.id)
           .eq('user_id', user.id)
           .single()
 
         if (responseData) {
-          setUserResponse(responseData)
+          setUserResponse(responseData as any)
         }
       }
     } catch (error) {
@@ -85,7 +87,7 @@ export default function QuizCard({ announcement, user, onRefresh }: QuizCardProp
           user_id: user.id,
           answer: selectedAnswer,
           is_correct: isCorrect,
-        })
+        } as any)
 
       if (error) throw error
 

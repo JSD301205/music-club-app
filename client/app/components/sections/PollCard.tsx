@@ -47,17 +47,19 @@ export default function PollCard({ announcement, user, onRefresh }: PollCardProp
         .single()
 
       if (pollError) throw pollError
-      setPoll(pollData as any)
+      
+      const poll = pollData as any
+      setPoll(poll)
 
       // Fetch all votes for results
       const { data: votesData } = await supabase
         .from('poll_votes')
         .select('selected_options')
-        .eq('poll_id', pollData.id)
+        .eq('poll_id', poll.id)
 
       if (votesData) {
         // Count votes for each option
-        const counts = new Array(pollData.options.length).fill(0)
+        const counts = new Array(poll.options.length).fill(0)
         votesData.forEach((vote: any) => {
           vote.selected_options.forEach((optionIndex: number) => {
             counts[optionIndex]++
@@ -72,13 +74,14 @@ export default function PollCard({ announcement, user, onRefresh }: PollCardProp
         const { data: voteData } = await supabase
           .from('poll_votes')
           .select('*')
-          .eq('poll_id', pollData.id)
+          .eq('poll_id', poll.id)
           .eq('user_id', user.id)
           .single()
 
         if (voteData) {
-          setUserVote(voteData as any)
-          setSelectedOptions(voteData.selected_options)
+          const vote = voteData as any
+          setUserVote(vote)
+          setSelectedOptions(vote.selected_options)
         }
       }
     } catch (error) {
