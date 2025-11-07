@@ -332,141 +332,6 @@ export default function AdminEquipmentPage() {
               <FaPlus /> Add Equipment
             </button>
 
-            {/* Equipment Form */}
-            {showEquipmentForm && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md"
-              >
-                <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-                  {editingEquipment ? 'Edit Equipment' : 'Add New Equipment'}
-                </h3>
-                <form onSubmit={handleSubmitEquipment} className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                      Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      required
-                      className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                      Category *
-                    </label>
-                    <select
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
-                      className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    >
-                      <option value="instrument">Instrument</option>
-                      <option value="amplifier">Amplifier</option>
-                      <option value="microphone">Microphone</option>
-                      <option value="audio-interface">Audio Interface</option>
-                      <option value="accessory">Accessory</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  <div className="col-span-2">
-                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                      Description
-                    </label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      rows={2}
-                      className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                      Serial Number
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.serial_number}
-                      onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })}
-                      className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                      Condition *
-                    </label>
-                    <select
-                      value={formData.condition}
-                      onChange={(e) => setFormData({ ...formData, condition: e.target.value as any })}
-                      className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    >
-                      <option value="excellent">Excellent</option>
-                      <option value="good">Good</option>
-                      <option value="fair">Fair</option>
-                      <option value="needs-repair">Needs Repair</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                      Total Quantity *
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.total_quantity}
-                      onChange={(e) => setFormData({ ...formData, total_quantity: parseInt(e.target.value) })}
-                      min={1}
-                      required
-                      className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                      Available Quantity *
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.available_quantity}
-                      onChange={(e) => setFormData({ ...formData, available_quantity: parseInt(e.target.value) })}
-                      min={0}
-                      max={formData.total_quantity}
-                      required
-                      className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div className="col-span-2 flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.is_active}
-                      onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                      className="w-4 h-4"
-                    />
-                    <label className="text-sm text-gray-700 dark:text-gray-300">Active</label>
-                  </div>
-                  <div className="col-span-2 flex gap-2">
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg"
-                    >
-                      {editingEquipment ? 'Update' : 'Create'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowEquipmentForm(false)
-                        setEditingEquipment(null)
-                      }}
-                      className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </motion.div>
-            )}
-
             {/* Equipment List */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {equipment.map((item) => (
@@ -613,6 +478,143 @@ export default function AdminEquipmentPage() {
           </div>
         )}
       </div>
+
+      {/* Equipment Form Modal */}
+      {showEquipmentForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          >
+            <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+              {editingEquipment ? 'Edit Equipment' : 'Add New Equipment'}
+            </h3>
+            <form onSubmit={handleSubmitEquipment} className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Name *
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                  className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Category *
+                </label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
+                  className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="instrument">Instrument</option>
+                  <option value="amplifier">Amplifier</option>
+                  <option value="microphone">Microphone</option>
+                  <option value="audio-interface">Audio Interface</option>
+                  <option value="accessory">Accessory</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div className="col-span-2">
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Description
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={2}
+                  className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Serial Number
+                </label>
+                <input
+                  type="text"
+                  value={formData.serial_number}
+                  onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })}
+                  className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Condition *
+                </label>
+                <select
+                  value={formData.condition}
+                  onChange={(e) => setFormData({ ...formData, condition: e.target.value as any })}
+                  className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="excellent">Excellent</option>
+                  <option value="good">Good</option>
+                  <option value="fair">Fair</option>
+                  <option value="needs-repair">Needs Repair</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Total Quantity *
+                </label>
+                <input
+                  type="number"
+                  value={formData.total_quantity}
+                  onChange={(e) => setFormData({ ...formData, total_quantity: parseInt(e.target.value) })}
+                  min={1}
+                  required
+                  className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  Available Quantity *
+                </label>
+                <input
+                  type="number"
+                  value={formData.available_quantity}
+                  onChange={(e) => setFormData({ ...formData, available_quantity: parseInt(e.target.value) })}
+                  min={0}
+                  max={formData.total_quantity}
+                  required
+                  className="w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div className="col-span-2 flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.is_active}
+                  onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                  className="w-4 h-4"
+                />
+                <label className="text-sm text-gray-700 dark:text-gray-300">Active</label>
+              </div>
+              <div className="col-span-2 flex gap-2">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg"
+                >
+                  {editingEquipment ? 'Update' : 'Create'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEquipmentForm(false)
+                    setEditingEquipment(null)
+                  }}
+                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </div>
   )
 }
