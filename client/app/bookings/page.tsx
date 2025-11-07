@@ -135,7 +135,7 @@ export default function RoomBookingsPage() {
           throw error
         }
       } else {
-        alert('Booking request submitted successfully! Awaiting admin approval.')
+        alert('Booking submitted successfully! Your booking has been automatically approved.')
         setSelectedRoom(null)
         setSelectedDate('')
         setStartTime('')
@@ -376,11 +376,11 @@ export default function RoomBookingsPage() {
                       disabled={submitting}
                       className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-50"
                     >
-                      {submitting ? 'Submitting...' : 'Submit Booking Request'}
+                      {submitting ? 'Submitting...' : 'Book Room'}
                     </button>
 
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      * Your booking request will be sent to admins for approval
+                      * Your booking will be automatically approved if the time slot is available
                     </p>
                   </form>
                 )}

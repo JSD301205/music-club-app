@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaBars, FaTimes } from 'react-icons/fa';
-import { motion } from 'framer-motion';
+import { FaBars, FaTimes, FaChevronDown } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import ProfileDropdown from './auth/ProfileDropdown';
@@ -12,6 +12,8 @@ import ProfileDropdown from './auth/ProfileDropdown';
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
+  const servicesRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   
   // Use optional chaining with fallback
@@ -52,16 +54,33 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (servicesRef.current && !servicesRef.current.contains(event.target as Node)) {
+        setServicesOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'About', href: pathname === '/' ? '#about' : '/#about' },
     { name: 'Events', href: '/events' },
     { name: 'Team', href: '/team' },
     { name: 'Gallery', href: '/gallery' },
-    { name: 'Resources', href: '/resources' },
-    { name: 'Community', href: '/community' },
-    { name: 'Jam Board', href: '/jam-board' },
     { name: 'Contact', href: pathname === '/' ? '#contact' : '/#contact' },
+  ];
+
+  const servicesLinks = [
+    { name: 'Community Hub', href: '/community', icon: '👥' },
+    { name: 'Jam Board', href: '/jam-board', icon: '🎵' },
+    { name: 'Room Booking', href: '/bookings', icon: '🚪' },
+    { name: 'Equipment', href: '/equipment', icon: '🎸' },
+    { name: 'Resources', href: '/resources', icon: '📚' },
   ];
 
   return (
@@ -87,7 +106,7 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
+          <div className="hidden lg:flex items-center space-x-6">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
@@ -97,6 +116,41 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
+            
+            {/* Services Dropdown */}
+            <div className="relative" ref={servicesRef}>
+              <button
+                onClick={() => setServicesOpen(!servicesOpen)}
+                className="flex items-center space-x-1 text-gray-300 hover:text-white transition-colors duration-300"
+              >
+                <span>Services</span>
+                <FaChevronDown className={`text-xs transition-transform ${servicesOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              <AnimatePresence>
+                {servicesOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-full right-0 mt-2 w-56 bg-gray-800/95 backdrop-blur-md rounded-lg shadow-xl overflow-hidden"
+                  >
+                    {servicesLinks.map((link) => (
+                      <Link
+                        key={link.name}
+                        href={link.href}
+                        className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200"
+                        onClick={() => setServicesOpen(false)}
+                      >
+                        <span className="text-xl">{link.icon}</span>
+                        <span>{link.name}</span>
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             
             {/* Auth Section - Always Visible */}
             <div className="flex items-center space-x-4">
@@ -123,7 +177,7 @@ const Navbar = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden text-white"
+            className="lg:hidden text-white"
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
@@ -136,7 +190,7 @@ const Navbar = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="md:hidden py-4 absolute top-20 left-0 right-0 bg-gray-900/95 backdrop-blur-md shadow-lg z-50"
+            className="lg:hidden py-4 absolute top-20 left-0 right-0 bg-gray-900/95 backdrop-blur-md shadow-lg z-50"
           >
             <div className="container mx-auto px-4">
               {navLinks.map((link) => (
@@ -149,6 +203,21 @@ const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
+              
+              {/* Mobile Services Section */}
+              <div className="mt-2 pt-2 border-t border-gray-700">
+                <p className="text-xs text-gray-500 uppercase tracking-wide mb-2 px-2">Services</p>
+                {servicesLinks.map((link) => (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    className="flex items-center space-x-3 py-2 text-gray-300 hover:text-white transition-colors duration-300"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <span className="text-xl">{link.icon}</span>
+                    <span>{link.name}</span>
+                  </Link>
+                ))}</div>
               
               {/* Mobile Auth Section */}
               {isAuthenticated ? (

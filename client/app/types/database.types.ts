@@ -345,7 +345,7 @@ export interface Database {
           email: string | null
           avatar_url: string | null
           bio: string | null
-          role: 'admin' | 'member' | 'enthusiast' | 'alumni'
+          role: 'admin' | 'lead' | 'member' | 'enthusiast' | 'alumni'
           instruments: Json
           musical_interests: Json
           spotify_playlist: string | null
@@ -363,7 +363,7 @@ export interface Database {
           email?: string | null
           avatar_url?: string | null
           bio?: string | null
-          role?: 'admin' | 'member' | 'enthusiast' | 'alumni'
+          role?: 'admin' | 'lead' | 'member' | 'enthusiast' | 'alumni'
           instruments?: Json
           musical_interests?: Json
           spotify_playlist?: string | null
@@ -381,7 +381,7 @@ export interface Database {
           email?: string | null
           avatar_url?: string | null
           bio?: string | null
-          role?: 'admin' | 'member' | 'enthusiast' | 'alumni'
+          role?: 'admin' | 'lead' | 'member' | 'enthusiast' | 'alumni'
           instruments?: Json
           musical_interests?: Json
           spotify_playlist?: string | null
@@ -550,7 +550,7 @@ export type MessageUpdate = Database['public']['Tables']['messages']['Update']
 export type MessageRequestUpdate = Database['public']['Tables']['message_requests']['Update']
 
 // Role type for easy use
-export type UserRole = 'admin' | 'member' | 'enthusiast' | 'alumni'
+export type UserRole = 'admin' | 'lead' | 'member' | 'enthusiast' | 'alumni'
 export type MessagePermission = 'everyone' | 'members_only' | 'no_one'
 export type AnnouncementType = 'quiz' | 'poll' | 'announcement' | 'event'
 export type QuizDifficulty = 'easy' | 'medium' | 'hard'

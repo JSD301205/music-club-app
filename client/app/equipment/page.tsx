@@ -129,7 +129,7 @@ export default function EquipmentPage() {
 
       if (error) throw error
       
-      alert('Borrowing request submitted successfully! Awaiting admin approval.')
+      alert('Equipment borrowed successfully! You can now pick it up.')
       setSelectedEquipment(null)
       setQuantity(1)
       setDueDate('')
@@ -406,11 +406,11 @@ export default function EquipmentPage() {
                       disabled={submitting}
                       className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-50"
                     >
-                      {submitting ? 'Submitting...' : 'Submit Request'}
+                      {submitting ? 'Submitting...' : 'Borrow Equipment'}
                     </button>
 
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      * Your request will be reviewed by admins. You'll be notified once approved.
+                      * Equipment will be automatically allocated if available
                     </p>
                   </form>
                 )}
