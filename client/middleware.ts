@@ -68,23 +68,14 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(url)
       }
       
-      // Get user metadata for role check (avoid database call)
-      const userRole = session.user.user_metadata?.role || 
-                       session.user.app_metadata?.role
+      // Always check database for role (role is stored in profiles table, not user metadata)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single()
       
-      // If role not in metadata, check database as fallback
-      if (!userRole) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single()
-        
-        if (!profile || (profile.role !== 'admin' && profile.role !== 'lead')) {
-          url.pathname = '/'
-          return NextResponse.redirect(url)
-        }
-      } else if (userRole !== 'admin' && userRole !== 'lead') {
+      if (!profile || (profile.role !== 'admin' && profile.role !== 'lead')) {
         url.pathname = '/'
         return NextResponse.redirect(url)
       }
