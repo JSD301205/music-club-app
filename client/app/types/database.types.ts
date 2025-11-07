@@ -10,6 +10,179 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      practice_rooms: {
+        Row: {
+          id: number
+          name: string
+          description: string | null
+          capacity: number
+          equipment_available: string[]
+          image_url: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          name: string
+          description?: string | null
+          capacity: number
+          equipment_available?: string[]
+          image_url?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          name?: string
+          description?: string | null
+          capacity?: number
+          equipment_available?: string[]
+          image_url?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      room_bookings: {
+        Row: {
+          id: number
+          room_id: number
+          user_id: string
+          booking_date: string
+          start_time: string
+          end_time: string
+          purpose: string | null
+          status: 'pending' | 'approved' | 'rejected' | 'cancelled'
+          approved_by: string | null
+          approved_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          room_id: number
+          user_id: string
+          booking_date: string
+          start_time: string
+          end_time: string
+          purpose?: string | null
+          status?: 'pending' | 'approved' | 'rejected' | 'cancelled'
+          approved_by?: string | null
+          approved_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          room_id?: number
+          user_id?: string
+          booking_date?: string
+          start_time?: string
+          end_time?: string
+          purpose?: string | null
+          status?: 'pending' | 'approved' | 'rejected' | 'cancelled'
+          approved_by?: string | null
+          approved_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      equipment_items: {
+        Row: {
+          id: number
+          name: string
+          category: 'instrument' | 'amplifier' | 'microphone' | 'audio-interface' | 'accessory' | 'other'
+          description: string | null
+          serial_number: string | null
+          condition: 'excellent' | 'good' | 'fair' | 'needs-repair'
+          image_url: string | null
+          total_quantity: number
+          available_quantity: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          name: string
+          category: 'instrument' | 'amplifier' | 'microphone' | 'audio-interface' | 'accessory' | 'other'
+          description?: string | null
+          serial_number?: string | null
+          condition?: 'excellent' | 'good' | 'fair' | 'needs-repair'
+          image_url?: string | null
+          total_quantity?: number
+          available_quantity?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          name?: string
+          category?: 'instrument' | 'amplifier' | 'microphone' | 'audio-interface' | 'accessory' | 'other'
+          description?: string | null
+          serial_number?: string | null
+          condition?: 'excellent' | 'good' | 'fair' | 'needs-repair'
+          image_url?: string | null
+          total_quantity?: number
+          available_quantity?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      equipment_borrowing: {
+        Row: {
+          id: number
+          equipment_id: number
+          user_id: string
+          quantity: number
+          borrowed_date: string
+          due_date: string
+          return_date: string | null
+          purpose: string | null
+          status: 'pending' | 'approved' | 'borrowed' | 'returned' | 'overdue' | 'rejected'
+          approved_by: string | null
+          approved_at: string | null
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          equipment_id: number
+          user_id: string
+          quantity?: number
+          borrowed_date: string
+          due_date: string
+          return_date?: string | null
+          purpose?: string | null
+          status?: 'pending' | 'approved' | 'borrowed' | 'returned' | 'overdue' | 'rejected'
+          approved_by?: string | null
+          approved_at?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          equipment_id?: number
+          user_id?: string
+          quantity?: number
+          borrowed_date?: string
+          due_date?: string
+          return_date?: string | null
+          purpose?: string | null
+          status?: 'pending' | 'approved' | 'borrowed' | 'returned' | 'overdue' | 'rejected'
+          approved_by?: string | null
+          approved_at?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
       announcements: {
         Row: {
           id: number
@@ -334,6 +507,10 @@ export interface Database {
 }
 
 // Helper types for easier usage
+export type PracticeRoom = Database['public']['Tables']['practice_rooms']['Row']
+export type RoomBooking = Database['public']['Tables']['room_bookings']['Row']
+export type EquipmentItem = Database['public']['Tables']['equipment_items']['Row']
+export type EquipmentBorrowing = Database['public']['Tables']['equipment_borrowing']['Row']
 export type Announcement = Database['public']['Tables']['announcements']['Row']
 export type QuizQuestion = Database['public']['Tables']['quiz_questions']['Row']
 export type QuizResponse = Database['public']['Tables']['quiz_responses']['Row']
@@ -344,6 +521,10 @@ export type Conversation = Database['public']['Tables']['conversations']['Row']
 export type Message = Database['public']['Tables']['messages']['Row']
 export type MessageRequest = Database['public']['Tables']['message_requests']['Row']
 
+export type PracticeRoomInsert = Database['public']['Tables']['practice_rooms']['Insert']
+export type RoomBookingInsert = Database['public']['Tables']['room_bookings']['Insert']
+export type EquipmentItemInsert = Database['public']['Tables']['equipment_items']['Insert']
+export type EquipmentBorrowingInsert = Database['public']['Tables']['equipment_borrowing']['Insert']
 export type AnnouncementInsert = Database['public']['Tables']['announcements']['Insert']
 export type QuizQuestionInsert = Database['public']['Tables']['quiz_questions']['Insert']
 export type QuizResponseInsert = Database['public']['Tables']['quiz_responses']['Insert']
@@ -354,6 +535,10 @@ export type ConversationInsert = Database['public']['Tables']['conversations']['
 export type MessageInsert = Database['public']['Tables']['messages']['Insert']
 export type MessageRequestInsert = Database['public']['Tables']['message_requests']['Insert']
 
+export type PracticeRoomUpdate = Database['public']['Tables']['practice_rooms']['Update']
+export type RoomBookingUpdate = Database['public']['Tables']['room_bookings']['Update']
+export type EquipmentItemUpdate = Database['public']['Tables']['equipment_items']['Update']
+export type EquipmentBorrowingUpdate = Database['public']['Tables']['equipment_borrowing']['Update']
 export type AnnouncementUpdate = Database['public']['Tables']['announcements']['Update']
 export type QuizQuestionUpdate = Database['public']['Tables']['quiz_questions']['Update']
 export type QuizResponseUpdate = Database['public']['Tables']['quiz_responses']['Update']
@@ -369,3 +554,7 @@ export type UserRole = 'admin' | 'member' | 'enthusiast' | 'alumni'
 export type MessagePermission = 'everyone' | 'members_only' | 'no_one'
 export type AnnouncementType = 'quiz' | 'poll' | 'announcement' | 'event'
 export type QuizDifficulty = 'easy' | 'medium' | 'hard'
+export type BookingStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
+export type BorrowingStatus = 'pending' | 'approved' | 'borrowed' | 'returned' | 'overdue' | 'rejected'
+export type EquipmentCategory = 'instrument' | 'amplifier' | 'microphone' | 'audio-interface' | 'accessory' | 'other'
+export type EquipmentCondition = 'excellent' | 'good' | 'fair' | 'needs-repair'
