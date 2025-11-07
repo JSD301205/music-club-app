@@ -72,7 +72,6 @@ const Navbar = () => {
     { name: 'Events', href: '/events' },
     { name: 'Team', href: '/team' },
     { name: 'Gallery', href: '/gallery' },
-    { name: 'Contact', href: pathname === '/' ? '#contact' : '/#contact' },
   ];
 
   const servicesLinks = [
@@ -152,6 +151,14 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
             
+            {/* Contact Link */}
+            <Link
+              href={pathname === '/' ? '#contact' : '/#contact'}
+              className="text-gray-300 hover:text-white transition-colors duration-300"
+            >
+              Contact
+            </Link>
+            
             {/* Auth Section - Always Visible */}
             <div className="flex items-center space-x-4">
               {isAuthenticated ? (
@@ -217,7 +224,17 @@ const Navbar = () => {
                     <span className="text-xl">{link.icon}</span>
                     <span>{link.name}</span>
                   </Link>
-                ))}</div>
+                ))}
+              </div>
+              
+              {/* Mobile Contact Link */}
+              <Link
+                href={pathname === '/' ? '#contact' : '/#contact'}
+                className="block py-2 text-gray-300 hover:text-white transition-colors duration-300 mt-2 pt-2 border-t border-gray-700"
+                onClick={() => setIsOpen(false)}
+              >
+                Contact
+              </Link>
               
               {/* Mobile Auth Section */}
               {isAuthenticated ? (
