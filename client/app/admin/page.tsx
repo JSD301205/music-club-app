@@ -214,6 +214,18 @@ export default function AdminPage() {
             📢 Announcements
           </button>
           <button
+            onClick={() => router.push('/admin/rooms')}
+            className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+          >
+            🚪 Room Booking
+          </button>
+          <button
+            onClick={() => router.push('/admin/equipment')}
+            className="p-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium"
+          >
+            🎸 Equipment
+          </button>
+          <button
             onClick={() => router.push('/admin/bands')}
             className="p-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors text-sm font-medium"
           >
