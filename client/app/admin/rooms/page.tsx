@@ -54,18 +54,23 @@ export default function AdminRoomsPage() {
   })
 
   useEffect(() => {
-    if (!authLoading) {
+    const checkAuthAndFetch = async () => {
+      if (authLoading) return
+      
       if (!user || !profile) {
         router.push('/')
         return
       }
+      
       if (profile.role !== 'admin' && profile.role !== 'lead') {
         router.push('/')
         return
       }
-      fetchRooms()
-      fetchBookings()
+      
+      await Promise.all([fetchRooms(), fetchBookings()])
     }
+    
+    checkAuthAndFetch()
   }, [user, profile, authLoading, router])
 
   const fetchRooms = async () => {

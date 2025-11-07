@@ -70,18 +70,23 @@ export default function AdminEquipmentPage() {
   })
 
   useEffect(() => {
-    if (!authLoading) {
+    const checkAuthAndFetch = async () => {
+      if (authLoading) return
+      
       if (!user || !profile) {
         router.push('/')
         return
       }
+      
       if (profile.role !== 'admin' && profile.role !== 'lead') {
         router.push('/')
         return
       }
-      fetchEquipment()
-      fetchBorrowings()
+      
+      await Promise.all([fetchEquipment(), fetchBorrowings()])
     }
+    
+    checkAuthAndFetch()
   }, [user, profile, authLoading, router])
 
   const fetchEquipment = async () => {

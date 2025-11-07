@@ -60,7 +60,7 @@ export async function middleware(request: NextRequest) {
 
     const url = request.nextUrl.clone()
     
-    // Admin route protection - only allow admin role
+    // Admin route protection - allow admin and lead roles
     if (url.pathname.startsWith('/admin')) {
       if (!session?.user) {
         // Not logged in, redirect to login
@@ -80,11 +80,11 @@ export async function middleware(request: NextRequest) {
           .eq('id', session.user.id)
           .single()
         
-        if (!profile || profile.role !== 'admin') {
+        if (!profile || (profile.role !== 'admin' && profile.role !== 'lead')) {
           url.pathname = '/'
           return NextResponse.redirect(url)
         }
-      } else if (userRole !== 'admin') {
+      } else if (userRole !== 'admin' && userRole !== 'lead') {
         url.pathname = '/'
         return NextResponse.redirect(url)
       }
