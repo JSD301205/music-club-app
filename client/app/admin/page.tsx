@@ -208,6 +208,12 @@ export default function AdminPage() {
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Quick Access</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <button
+            onClick={() => router.push('/admin/announcements')}
+            className="p-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm font-medium"
+          >
+            📢 Announcements
+          </button>
+          <button
             onClick={() => router.push('/admin/bands')}
             className="p-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors text-sm font-medium"
           >
