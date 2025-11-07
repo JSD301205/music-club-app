@@ -54,23 +54,24 @@ export default function AdminRoomsPage() {
   })
 
   useEffect(() => {
-    const checkAuthAndFetch = async () => {
-      if (authLoading) return
-      
-      if (!user || !profile) {
-        router.push('/')
-        return
-      }
-      
-      if (profile.role !== 'admin' && profile.role !== 'lead') {
-        router.push('/')
-        return
-      }
-      
-      await Promise.all([fetchRooms(), fetchBookings()])
+    if (authLoading) return
+    
+    if (!user) {
+      router.push('/')
+      return
     }
     
-    checkAuthAndFetch()
+    // Only redirect if we have a profile and it's not admin/lead
+    if (profile !== null && profile.role !== 'admin' && profile.role !== 'lead') {
+      router.push('/')
+      return
+    }
+    
+    // Only fetch if we have the profile loaded
+    if (profile?.role === 'admin' || profile?.role === 'lead') {
+      fetchRooms()
+      fetchBookings()
+    }
   }, [user, profile, authLoading, router])
 
   const fetchRooms = async () => {
