@@ -55,14 +55,18 @@ export default function AdminRoomsPage() {
 
   useEffect(() => {
     if (!authLoading) {
-      if (!user || !profile || (profile.role !== 'admin' && profile.role !== 'lead')) {
+      if (!user || !profile) {
         router.push('/')
-      } else {
-        fetchRooms()
-        fetchBookings()
+        return
       }
+      if (profile.role !== 'admin' && profile.role !== 'lead') {
+        router.push('/')
+        return
+      }
+      fetchRooms()
+      fetchBookings()
     }
-  }, [user, profile, authLoading])
+  }, [user, profile, authLoading, router])
 
   const fetchRooms = async () => {
     try {

@@ -255,12 +255,6 @@ export default function AdminPage() {
           >
             Manage Resources
           </button>
-          <button
-            onClick={() => window.location.reload()}
-            className="p-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium"
-          >
-            Add Events/Gallery
-          </button>
         </div>
       </div>
 

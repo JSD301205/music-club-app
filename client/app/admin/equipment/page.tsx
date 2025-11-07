@@ -71,14 +71,18 @@ export default function AdminEquipmentPage() {
 
   useEffect(() => {
     if (!authLoading) {
-      if (!user || !profile || (profile.role !== 'admin' && profile.role !== 'lead')) {
+      if (!user || !profile) {
         router.push('/')
-      } else {
-        fetchEquipment()
-        fetchBorrowings()
+        return
       }
+      if (profile.role !== 'admin' && profile.role !== 'lead') {
+        router.push('/')
+        return
+      }
+      fetchEquipment()
+      fetchBorrowings()
     }
-  }, [user, profile, authLoading])
+  }, [user, profile, authLoading, router])
 
   const fetchEquipment = async () => {
     try {
