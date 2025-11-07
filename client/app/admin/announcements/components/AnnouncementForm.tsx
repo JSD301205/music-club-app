@@ -27,6 +27,8 @@ export default function AnnouncementForm({ announcementId, onClose }: Announceme
   }, [announcementId])
 
   const loadExistingAnnouncement = async () => {
+    if (!announcementId) return
+    
     try {
       const { data: announcement } = await supabase
         .from('announcements')
@@ -71,17 +73,17 @@ export default function AnnouncementForm({ announcementId, onClose }: Announceme
 
       if (announcementId) {
         // Update existing announcement
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('announcements')
-          .update(announcementData as any)
+          .update(announcementData)
           .eq('id', announcementId)
 
         if (error) throw error
       } else {
         // Create new announcement
-        const { error } = await supabase
+        const { error} = await (supabase as any)
           .from('announcements')
-          .insert(announcementData as any)
+          .insert(announcementData)
 
         if (error) throw error
       }

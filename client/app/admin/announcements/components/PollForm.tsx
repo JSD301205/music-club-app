@@ -30,6 +30,8 @@ export default function PollForm({ announcementId, onClose }: PollFormProps) {
   }, [announcementId])
 
   const loadExistingPoll = async () => {
+    if (!announcementId) return
+    
     try {
       const { data: announcement } = await supabase
         .from('announcements')
@@ -106,44 +108,44 @@ export default function PollForm({ announcementId, onClose }: PollFormProps) {
 
       if (announcementId) {
         // Update existing announcement
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('announcements')
-          .update(announcementData as any)
+          .update(announcementData)
           .eq('id', announcementId)
 
         if (error) throw error
 
         // Update poll
-        const { error: pollError } = await supabase
+        const { error: pollError } = await (supabase as any)
           .from('polls')
           .update({
             question: pollQuestion,
             options: pollOptions.filter(o => o.trim()),
             allow_multiple: allowMultiple
-          } as any)
+          })
           .eq('announcement_id', announcementId)
 
         if (pollError) throw pollError
       } else {
         // Create new announcement
-        const { data: newAnnouncement, error } = await supabase
+        const { data: newAnnouncement, error } = await (supabase as any)
           .from('announcements')
-          .insert(announcementData as any)
+          .insert(announcementData)
           .select()
           .single()
 
         if (error) throw error
-        finalAnnouncementId = (newAnnouncement as any).id
+        finalAnnouncementId = newAnnouncement.id
 
         // Create poll
-        const { error: pollError } = await supabase
+        const { error: pollError } = await (supabase as any)
           .from('polls')
           .insert({
             announcement_id: finalAnnouncementId,
             question: pollQuestion,
             options: pollOptions.filter(o => o.trim()),
             allow_multiple: allowMultiple
-          } as any)
+          })
 
         if (pollError) throw pollError
       }

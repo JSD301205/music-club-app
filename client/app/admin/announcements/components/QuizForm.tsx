@@ -44,6 +44,8 @@ export default function QuizForm({ announcementId, onClose }: QuizFormProps) {
   }, [announcementId])
 
   const loadExistingQuiz = async () => {
+    if (!announcementId) return
+    
     try {
       const { data: announcement } = await supabase
         .from('announcements')
@@ -52,12 +54,13 @@ export default function QuizForm({ announcementId, onClose }: QuizFormProps) {
         .single()
 
       if (announcement) {
-        setTitle(announcement.title)
-        setDescription(announcement.description || '')
-        setPriority(announcement.priority)
-        setIsActive(announcement.is_active)
-        setStartDate(announcement.start_date ? announcement.start_date.split('T')[0] : '')
-        setEndDate(announcement.end_date ? announcement.end_date.split('T')[0] : '')
+        const ann = announcement as any
+        setTitle(ann.title)
+        setDescription(ann.description || '')
+        setPriority(ann.priority)
+        setIsActive(ann.is_active)
+        setStartDate(ann.start_date ? ann.start_date.split('T')[0] : '')
+        setEndDate(ann.end_date ? ann.end_date.split('T')[0] : '')
       }
 
       const { data: quizData } = await supabase
@@ -67,13 +70,14 @@ export default function QuizForm({ announcementId, onClose }: QuizFormProps) {
         .single()
 
       if (quizData) {
+        const quiz = quizData as any
         setQuestion({
-          question: quizData.question,
-          options: quizData.options as string[],
-          correct_answer: quizData.correct_answer,
-          explanation: quizData.explanation || '',
-          difficulty: quizData.difficulty as any,
-          category: quizData.category || 'theory'
+          question: quiz.question,
+          options: quiz.options as string[],
+          correct_answer: quiz.correct_answer,
+          explanation: quiz.explanation || '',
+          difficulty: quiz.difficulty as any,
+          category: quiz.category || 'theory'
         })
       }
     } catch (error) {
@@ -124,15 +128,15 @@ export default function QuizForm({ announcementId, onClose }: QuizFormProps) {
 
       if (announcementId) {
         // Update existing announcement
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('announcements')
-          .update(announcementData as any)
+          .update(announcementData)
           .eq('id', announcementId)
 
         if (error) throw error
 
         // Update quiz question
-        const { error: quizError } = await supabase
+        const { error: quizError } = await (supabase as any)
           .from('quiz_questions')
           .update({
             question: question.question,
@@ -141,15 +145,15 @@ export default function QuizForm({ announcementId, onClose }: QuizFormProps) {
             explanation: question.explanation || null,
             difficulty: question.difficulty,
             category: question.category
-          } as any)
+          })
           .eq('announcement_id', announcementId)
 
         if (quizError) throw quizError
       } else {
         // Create new announcement
-        const { data: newAnnouncement, error } = await supabase
+        const { data: newAnnouncement, error } = await (supabase as any)
           .from('announcements')
-          .insert(announcementData as any)
+          .insert(announcementData)
           .select()
           .single()
 
@@ -157,7 +161,7 @@ export default function QuizForm({ announcementId, onClose }: QuizFormProps) {
         finalAnnouncementId = newAnnouncement.id
 
         // Create quiz question
-        const { error: quizError } = await supabase
+        const { error: quizError } = await (supabase as any)
           .from('quiz_questions')
           .insert({
             announcement_id: finalAnnouncementId,
@@ -167,7 +171,7 @@ export default function QuizForm({ announcementId, onClose }: QuizFormProps) {
             explanation: question.explanation || null,
             difficulty: question.difficulty,
             category: question.category
-          } as any)
+          })
 
         if (quizError) throw quizError
       }

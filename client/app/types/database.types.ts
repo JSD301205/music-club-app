@@ -10,6 +10,160 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          id: number
+          type: 'quiz' | 'poll' | 'announcement' | 'event'
+          title: string
+          description: string | null
+          is_active: boolean
+          priority: number
+          start_date: string | null
+          end_date: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+          metadata: Json
+        }
+        Insert: {
+          id?: number
+          type: 'quiz' | 'poll' | 'announcement' | 'event'
+          title: string
+          description?: string | null
+          is_active?: boolean
+          priority?: number
+          start_date?: string | null
+          end_date?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+          metadata?: Json
+        }
+        Update: {
+          id?: number
+          type?: 'quiz' | 'poll' | 'announcement' | 'event'
+          title?: string
+          description?: string | null
+          is_active?: boolean
+          priority?: number
+          start_date?: string | null
+          end_date?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+          metadata?: Json
+        }
+      }
+      quiz_questions: {
+        Row: {
+          id: number
+          announcement_id: number
+          question: string
+          options: Json
+          correct_answer: string
+          explanation: string | null
+          difficulty: 'easy' | 'medium' | 'hard'
+          category: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          announcement_id: number
+          question: string
+          options: Json
+          correct_answer: string
+          explanation?: string | null
+          difficulty?: 'easy' | 'medium' | 'hard'
+          category?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          announcement_id?: number
+          question?: string
+          options?: Json
+          correct_answer?: string
+          explanation?: string | null
+          difficulty?: 'easy' | 'medium' | 'hard'
+          category?: string | null
+          created_at?: string
+        }
+      }
+      quiz_responses: {
+        Row: {
+          id: number
+          question_id: number
+          user_id: string
+          answer: string
+          is_correct: boolean
+          responded_at: string
+        }
+        Insert: {
+          id?: number
+          question_id: number
+          user_id: string
+          answer: string
+          is_correct: boolean
+          responded_at?: string
+        }
+        Update: {
+          id?: number
+          question_id?: number
+          user_id?: string
+          answer?: string
+          is_correct?: boolean
+          responded_at?: string
+        }
+      }
+      polls: {
+        Row: {
+          id: number
+          announcement_id: number
+          question: string
+          options: Json
+          allow_multiple: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          announcement_id: number
+          question: string
+          options: Json
+          allow_multiple?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          announcement_id?: number
+          question?: string
+          options?: Json
+          allow_multiple?: boolean
+          created_at?: string
+        }
+      }
+      poll_votes: {
+        Row: {
+          id: number
+          poll_id: number
+          user_id: string
+          selected_options: Json
+          voted_at: string
+        }
+        Insert: {
+          id?: number
+          poll_id: number
+          user_id: string
+          selected_options: Json
+          voted_at?: string
+        }
+        Update: {
+          id?: number
+          poll_id?: number
+          user_id?: string
+          selected_options?: Json
+          voted_at?: string
+        }
+      }
       profiles: {
         Row: {
           id: string
@@ -180,16 +334,31 @@ export interface Database {
 }
 
 // Helper types for easier usage
+export type Announcement = Database['public']['Tables']['announcements']['Row']
+export type QuizQuestion = Database['public']['Tables']['quiz_questions']['Row']
+export type QuizResponse = Database['public']['Tables']['quiz_responses']['Row']
+export type Poll = Database['public']['Tables']['polls']['Row']
+export type PollVote = Database['public']['Tables']['poll_votes']['Row']
 export type Profile = Database['public']['Tables']['profiles']['Row']
 export type Conversation = Database['public']['Tables']['conversations']['Row']
 export type Message = Database['public']['Tables']['messages']['Row']
 export type MessageRequest = Database['public']['Tables']['message_requests']['Row']
 
+export type AnnouncementInsert = Database['public']['Tables']['announcements']['Insert']
+export type QuizQuestionInsert = Database['public']['Tables']['quiz_questions']['Insert']
+export type QuizResponseInsert = Database['public']['Tables']['quiz_responses']['Insert']
+export type PollInsert = Database['public']['Tables']['polls']['Insert']
+export type PollVoteInsert = Database['public']['Tables']['poll_votes']['Insert']
 export type ProfileInsert = Database['public']['Tables']['profiles']['Insert']
 export type ConversationInsert = Database['public']['Tables']['conversations']['Insert']
 export type MessageInsert = Database['public']['Tables']['messages']['Insert']
 export type MessageRequestInsert = Database['public']['Tables']['message_requests']['Insert']
 
+export type AnnouncementUpdate = Database['public']['Tables']['announcements']['Update']
+export type QuizQuestionUpdate = Database['public']['Tables']['quiz_questions']['Update']
+export type QuizResponseUpdate = Database['public']['Tables']['quiz_responses']['Update']
+export type PollUpdate = Database['public']['Tables']['polls']['Update']
+export type PollVoteUpdate = Database['public']['Tables']['poll_votes']['Update']
 export type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
 export type ConversationUpdate = Database['public']['Tables']['conversations']['Update']
 export type MessageUpdate = Database['public']['Tables']['messages']['Update']
@@ -198,3 +367,5 @@ export type MessageRequestUpdate = Database['public']['Tables']['message_request
 // Role type for easy use
 export type UserRole = 'admin' | 'member' | 'enthusiast' | 'alumni'
 export type MessagePermission = 'everyone' | 'members_only' | 'no_one'
+export type AnnouncementType = 'quiz' | 'poll' | 'announcement' | 'event'
+export type QuizDifficulty = 'easy' | 'medium' | 'hard'

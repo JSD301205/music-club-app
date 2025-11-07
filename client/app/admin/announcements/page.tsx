@@ -84,7 +84,7 @@ export default function AnnouncementsAdminPage() {
 
   const handleToggleActive = async (id: number, currentStatus: boolean) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('announcements')
         .update({ is_active: !currentStatus })
         .eq('id', id)
