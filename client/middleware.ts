@@ -69,16 +69,27 @@ export async function middleware(request: NextRequest) {
       }
       
       // Always check database for role (role is stored in profiles table, not user metadata)
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', session.user.id)
         .single()
       
+      console.log('Middleware - Admin route check:', {
+        userId: session.user.id,
+        profile,
+        profileError,
+        role: profile?.role,
+        pathname: url.pathname
+      })
+      
       if (!profile || (profile.role !== 'admin' && profile.role !== 'lead')) {
+        console.log('Middleware - Redirecting to / - Role check failed')
         url.pathname = '/'
         return NextResponse.redirect(url)
       }
+      
+      console.log('Middleware - Access granted to admin route')
     }
     
     // Protected routes that require authentication
