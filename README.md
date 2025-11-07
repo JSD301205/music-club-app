@@ -12,36 +12,43 @@ The official website for the Music Club of IIITDM Kancheepuram, built with moder
 ## 🚀 Features
 
 ### Quick Links
-- 🏠 [Homepage](/) - Interactive landing page
+- 🏠 [Homepage](/) - Interactive landing page with announcements
 - 📅 [Events](/events) - Upcoming and past events
 - 🖼️ [Gallery](/gallery) - Photo galleries from events
 - 👥 [Team](/team) - Meet the club members
+- 🎸 [Internal Bands](/internal-bands) - Our club bands and members
 - 🗂️ [Community](/community) - Member directory and messaging
 - 🎸 [Jam Board](/jam-board) - Find musicians and jam sessions
 - 📚 [Resources](/resources) - Learning materials library
 - 💬 [Messages](/community/messages) - DMs and Global Chat
 - ⚙️ [Settings](/settings) - Profile and preferences
 - 🔐 [Admin](/admin) - Content management (admin only)
+  - 📢 [Announcements](/admin/announcements) - Manage quizzes, polls, announcements
 
 ### Core Features
 - 🎵 **Interactive Homepage** with animated sections and modern UI
-- 📱 **Responsive Design** for all devices
+- � **Announcements & Bulletin Board** with quizzes, polls, and updates
+- �📱 **Responsive Design** for all devices
 - 🎨 **Modern UI/UX** with smooth animations
 - 🌓 **Dark Mode** support
 - 🔧 **Admin Interface** for content management
-- 🛡️ **Role-Based Access** (Admin, Member, Enthusiast)
+- 🛡️ **Role-Based Access** (Admin, Lead, Member, Enthusiast, Alumni)
 - 🔐 **Supabase Authentication & Profile System**
 - 📝 **Profile Completion Enforcement** (required for community/jam-board)
 - 💬 **Group Chat & Direct Messaging** (with profile-based restrictions)
 - 📧 **Password Reset & Email Verification**
-- 🖼️ **Avatar Upload & Cropping**
-- 🏷️ **Event & Gallery Management**
-- 🏆 **Jam Board** for collaborative posts
-- 🗂️ **Community Directory** with role badges
-- 🛠️ **Admin Tools** for gallery/events
+- 🖼️ **Avatar Upload & Cropping** with interactive image editor
+- 🏷️ **Event & Gallery Management** with featured members tracking
+- 🏆 **Jam Board** for collaborative posts and finding musicians
+- 🗂️ **Community Directory** with role badges and profiles
+- 🎸 **Internal Bands** showcase with member profiles
+- 🛠️ **Admin Tools** for gallery/events/bands/team/resources/announcements
 - 📚 **Music Resource Library** with categorized learning materials
 - 🌐 **Global Chat** with real-time messaging and profanity filter
 - 📎 **File Sharing** in messages (images, audio, documents)
+- 🎯 **Interactive Quizzes** for music theory learning
+- 📊 **Polls & Voting System** for community engagement
+- 📧 **Email Notifications** for messages and updates
 
 ### Sections
 1. **Hero Section**
@@ -56,78 +63,117 @@ The official website for the Music Club of IIITDM Kancheepuram, built with moder
      - Vocal Workshops
      - Live Performances
 
-3. **Gallery Section**
+3. **Announcements Section** ⭐ NEW
+   - Interactive bulletin board with tabs
+   - Daily music theory quizzes with explanations
+   - Community polls with real-time vote tallies
+   - General announcements and event updates
+   - Priority-based display
+   - Scheduled visibility (start/end dates)
+
+4. **Gallery Section**
    - Filterable photo gallery
    - Categories: Performances, Workshops, Jam Sessions
    - Smooth animations and transitions
    - Lightbox image viewer
+   - Featured members tracking for badges
 
-4. **Events Section**
+5. **Events Section**
    - Upcoming and past events
    - Event details including date, time, and location
    - Registration links for events
    - Event categories and filtering
+   - YouTube video integration
+   - Gallery routes for events
 
-5. **Contact Section**
+6. **Contact Section**
    - Contact form with validation
    - Social media links
    - Club location and contact information
 
-6. **Team Pages**
+7. **Team Pages**
    - Dedicated pages for 2024 and 2025 teams
-   - Team member profiles
-   - Role-based organization
+   - Team member profiles with clickable usernames
+   - Role-based organization (Leads, Secretaries, Members)
+   - Integration with community profiles
 
-7. **Admin Dashboard**
+8. **Internal Bands**
+   - Showcase of club bands
+   - Band member profiles with clickable links
+   - Band formation history
+   - Genre and band bio information
+
+9. **Admin Dashboard**
    - Easy content management for gallery items and events
    - Form-based interface for adding new content
    - Automatic ID generation and position management
    - One-click code copying for seamless updates
+   - Announcements admin with quiz/poll/announcement creation
+   - Bands and team management
+   - Resources library management
+   - Profile username mapping tools
 
-8. **Community & Messaging**
-   - Community directory with role badges
-   - Direct messaging (cannot message yourself)
-   - Group chat (with deployment guide)
-   - Profile completion required for access
+10. **Community & Messaging**
+    - Community directory with role badges
+    - Direct messaging (cannot message yourself)
+    - Global chat (public chat room)
+    - Profile completion required for access
+    - Message request system for restricted profiles
+    - Real-time message delivery
+    - File sharing support
 
-9. **Profile Setup**
-   - Enthusiasts: Only bio, genres, batch year required
-   - Members: Bio, instruments, genres, batch year required
-   - Avatar upload and cropping
-   - Spotify playlist link (optional)
+11. **Profile Setup**
+    - Role-based profile requirements:
+      - Enthusiasts: Bio, genres, batch year
+      - Members: Bio, instruments, genres, batch year
+      - Leads/Admins: All profile fields
+    - Avatar upload and interactive cropping
+    - Spotify playlist link (optional)
+    - Social media links (optional)
+    - Message privacy settings
 
-10. **Security & Access**
-   - Middleware restricts access to protected routes for incomplete profiles
-   - Password reset and email verification flows
+12. **Security & Access**
+    - Middleware restricts access to protected routes for incomplete profiles
+    - Password reset and email verification flows
+    - Row Level Security (RLS) policies on all tables
+    - Role-based permissions (Admin, Lead, Member, Enthusiast, Alumni)
 
-11. **Music Resource Library**
-   - Curated collection of learning resources
-   - Categorized by instrument and skill level
-   - Multiple resource types: Videos, PDFs, Articles, Audio
-   - Search and filter functionality
-   - Featured resources section
-   - Admin interface for CRUD operations
+13. **Music Resource Library**
+    - Curated collection of learning resources
+    - Categorized by instrument and skill level
+    - Multiple resource types: Videos, PDFs, Articles, Audio
+    - Search and filter functionality
+    - Featured resources section
+    - Admin interface for CRUD operations
 
-12. **Global Chat**
-   - Public chat room for all community members
-   - Real-time messaging with Supabase Realtime
-   - Profanity filter with automatic word censoring
-   - Clickable user profiles
-   - Edit and delete message capabilities
-   - Muted by default (no email notifications)
-   - Message count display
+14. **Global Chat**
+    - Public chat room for all community members
+    - Real-time messaging with Supabase Realtime
+    - Profanity filter with automatic word censoring
+    - Clickable user profiles
+    - Edit and delete message capabilities
+    - Muted by default (no email notifications)
+    - Message count display
 
-13. **File Sharing**
-   - Share files in both DMs and Global Chat
-   - Supported types: Images, Audio (MP3, WAV, OGG), Documents (PDF, DOC)
-   - File size limits: 10MB for media, 25MB for documents
-   - In-chat file previews:
-     - Images: Click-to-enlarge fullscreen view
-     - Audio: Inline player with controls
-     - Documents: Download button with file info
-   - Secure storage with Supabase Storage
-   - Row Level Security policies
-   - File validation (type and size)
+15. **File Sharing**
+    - Share files in both DMs and Global Chat
+    - Supported types: Images, Audio (MP3, WAV, OGG), Documents (PDF, DOC)
+    - File size limits: 10MB for media, 25MB for documents
+    - In-chat file previews:
+      - Images: Click-to-enlarge fullscreen view
+      - Audio: Inline player with controls
+      - Documents: Download button with file info
+    - Secure storage with Supabase Storage
+    - Row Level Security policies
+    - File validation (type and size)
+
+16. **Jam Board**
+    - Post seeking musicians for collaboration
+    - Filter by instrument, genre, skill level
+    - Response system for interested members
+    - Real-time response count tracking
+    - Edit and delete own posts
+    - Profile integration with clickable usernames
 
 ## 🛠️ Technical Stack
 
@@ -257,22 +303,27 @@ FIREBASE_CLIENT_EMAIL=
 ### Supabase Configuration
 1. Create a Supabase project at [supabase.com](https://supabase.com)
 2. Run the following migrations in order (SQL Editor):
+   - `supabase/create-announcements-table.sql` - Announcements, Quizzes, and Polls
    - `client/supabase/add-resources-library.sql` - Music Resource Library
    - `client/supabase/add-global-chat.sql` - Global Chat
    - `client/supabase/add-file-sharing-fixed.sql` - File Sharing
 
 3. Enable Realtime for tables:
    - Navigate to **Settings → API → Realtime**
-   - Enable for: `global_chat_messages`
+   - Enable for: `global_chat_messages`, `messages`, `jam_board_posts`, `jam_board_responses`
 
 4. Configure Storage:
    - Buckets are created automatically via migrations
-   - Verify buckets exist: `resources`, `chat-files`, `global-chat-files`
+   - Verify buckets exist: `avatars`, `resources`, `chat-files`, `global-chat-files`
 
 ### Feature Documentation
+- **Announcements System**: Database tables and RLS policies in `create-announcements-table.sql`
 - **Music Resource Library**: See `MUSIC_RESOURCE_LIBRARY_SETUP.md`
 - **Global Chat**: See `GLOBAL_CHAT_SETUP.md`
 - **File Sharing**: See `FILE_SHARING_SETUP.md` and `DM_FILE_SHARING_UPDATE.md`
+- **Jam Board**: See `JAM_BOARD_DEPLOYMENT.md` and `JAM_BOARD_USER_GUIDE.md`
+- **Authentication**: See `AUTH_SYSTEM_GUIDE.md` and `AUTH_QUICK_REFERENCE.md`
+- **Admin Interfaces**: See `ADMIN_INTERFACES_GUIDE.md`
 
 ## �📚 API Documentation
 
@@ -329,7 +380,18 @@ For any queries or support, please reach out to:
 ## 🔄 Recent Updates
 
 ### November 2024
-- � **Music Resource Library** - Curated learning resources with advanced filtering
+- 📢 **Announcements & Bulletin Board System** - Interactive engagement features
+  - Daily music theory quizzes with scoring and explanations
+  - Community polls with real-time vote tallies and results
+  - General announcements with priority and scheduling
+  - Event announcements with date-based visibility
+  - Admin interface at `/admin/announcements` for managing all content
+  - Tabbed interface (All/Quizzes/Polls/News)
+  - Difficulty levels for quizzes (Easy/Medium/Hard)
+  - Multi-select polls option
+  - Automated response tracking and statistics
+
+- 📚 **Music Resource Library** - Curated learning resources with advanced filtering
   - Filter by instrument, skill level, category
   - Search functionality
   - Featured resources section
@@ -352,8 +414,20 @@ For any queries or support, please reach out to:
   - Secure storage with RLS policies
   - Client and server-side validation
 
+- 🎸 **Jam Board Enhancements**
+  - Real-time response count tracking
+  - Advanced filtering by instrument, genre, skill level
+  - Profile integration with clickable usernames
+  - Edit and delete functionality for post creators
+
+- 👥 **Team & Bands Integration**
+  - Internal bands page at `/internal-bands`
+  - Clickable team member usernames linking to profiles
+  - Band member profile mapping
+  - Role-based team organization (Admin, Lead, Member roles)
+
 ### March 2024
-- �📱 **Enhanced Mobile Responsiveness** with improved UI/UX for all screen sizes
+- 📱 **Enhanced Mobile Responsiveness** with improved UI/UX for all screen sizes
 - 🎨 **Refined UI Components** with smoother animations and transitions
 - 📝 **Legal Pages** added:
   - Privacy Policy

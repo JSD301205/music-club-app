@@ -37,11 +37,11 @@
 <!-- 11. **Music Resource Library**
     - Curated library of learning resources (tutorials, sheet music, backing tracks) categorized by instrument and skill level. -->
 
-12. **Music Theory Quiz/Games**
-    - Interactive quizzes and games for learning music theory, ear training, and rhythm practice. Daily questions.
+<!-- 12. **Music Theory Quiz/Games**
+    - Interactive quizzes and games for learning music theory, ear training, and rhythm practice. Daily questions. -->
 
-13. **Poll & Voting System**
-    - Create polls for event themes, song selections, or club decisions with real-time vote tallies.
+<!-- 13. **Poll & Voting System**
+    - Create polls for event themes, song selections, or club decisions with real-time vote tallies. -->
 
 14. **Event Live Streaming/Jammming**
     - Stream live performances to wider audience with chat integration and recording archive.
